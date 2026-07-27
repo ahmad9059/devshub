@@ -4,6 +4,8 @@ DevsHub uses the unmodified shadcn/ui `base-nova` component language with semant
 
 ## Principles
 
+- **Component priority:** use an existing official shadcn component first. If it is not installed, search the shadcn registry and add it before writing a custom component.
+- Build a custom component only when the shadcn registry has no suitable primitive. Custom components must compose existing shadcn primitives where possible and use the same semantic tokens.
 - Dark is the default theme; light and system themes remain fully supported.
 - Use semantic utilities such as `bg-background`, `text-foreground`, and `border-border`.
 - Do not use hardcoded colors in product components.
@@ -35,6 +37,13 @@ Never reference raw OKLCH values outside the global theme mapping.
 Installed primitives include alerts, avatars, badges, buttons, cards, checkboxes, dropdown menus, inputs, labels, selects, separators, skeletons, switches, tables, tabs, textareas, and tooltips.
 
 Use `pnpm dlx shadcn@latest add <component>` to extend the system. Review generated source and do not overwrite existing components without checking the diff.
+
+Before adding UI, follow this order:
+
+1. Reuse an installed component from `src/components/ui`.
+2. Search the official shadcn registry for a suitable component.
+3. Install the registry component with the shadcn CLI.
+4. Only then build a project component by composing shadcn primitives.
 
 ## Theme
 
