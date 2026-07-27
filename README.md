@@ -36,3 +36,7 @@ The `storage.createImageUpload` tRPC mutation returns a five-minute presigned UR
 | `pnpm db:studio`    | Open Drizzle Studio               |
 
 Do not expose AWS credentials or the Neon connection string to client components. For production on AWS, prefer an IAM role over long-lived access keys.
+
+## Design system
+
+The app uses shadcn/ui semantic tokens with dark mode enabled by default. Visit `/design-system` for the live foundations, components, and patterns reference. Design decisions are documented in `design-system/devshub/MASTER.md`.

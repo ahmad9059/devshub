@@ -11,3 +11,7 @@
 *.tsbuildinfo
 *.log
 .idea
+
+
+/.mcp-playwright/
+/.playwright-mcp/
