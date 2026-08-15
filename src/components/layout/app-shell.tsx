@@ -137,6 +137,12 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               DevsHub is a focused home for developers to share, build, and grow
               together.
             </p>
+            <Link
+              href="/policy"
+              className="text-muted-foreground hover:text-foreground text-xs"
+            >
+              Content Policy
+            </Link>
           </div>
         </aside>
       </div>

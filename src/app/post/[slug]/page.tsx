@@ -8,6 +8,7 @@ import { AppShell } from "~/components/layout/app-shell";
 import { Markdown } from "~/components/markdown";
 import { PostActions } from "~/components/post-actions";
 import { CommentSection } from "~/components/comment-tree";
+import { ReportDialog } from "~/components/report-dialog";
 import { UserAvatar } from "~/components/user-avatar";
 import { VoteButton } from "~/components/vote-button";
 import { Button } from "~/components/ui/button";
@@ -25,10 +26,31 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  return {
-    title: `${slug.replace(/-/g, " ")} | DevsHub`,
-    description: `A post on DevsHub.`,
-  };
+  const ctx = await createTRPCContext({ headers: new Headers() });
+  const caller = createCaller(ctx);
+
+  try {
+    const post = await caller.post.getBySlug({ slug });
+    return {
+      title: post.title,
+      description:
+        post.body?.slice(0, 160) ??
+        `A post by ${post.author.username ?? post.author.name} in d/${post.community.slug}.`,
+      openGraph: {
+        title: post.title,
+        description:
+          post.body?.slice(0, 160) ??
+          `A post by ${post.author.username ?? post.author.name} in d/${post.community.slug}.`,
+        type: "article",
+        publishedTime: post.createdAt.toISOString(),
+      },
+    };
+  } catch {
+    return {
+      title: slug.replace(/-/g, " "),
+      description: "A post on DevsHub.",
+    };
+  }
 }
 
 function formatDate(date: Date): string {
@@ -124,19 +146,22 @@ export default async function PostPage({
                   {post.commentCount} comments
                 </span>
               </div>
-              {isAuthor && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    render={<Link href={`/post/${post.slug}/edit`} />}
-                  >
-                    <PencilIcon aria-hidden="true" />
-                    Edit
-                  </Button>
-                  <PostActions postId={post.id} />
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                {isAuthor && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      render={<Link href={`/post/${post.slug}/edit`} />}
+                    >
+                      <PencilIcon aria-hidden="true" />
+                      Edit
+                    </Button>
+                    <PostActions postId={post.id} />
+                  </>
+                )}
+                <ReportDialog targetType="post" targetId={post.id} />
+              </div>
             </div>
           </CardContent>
         </Card>

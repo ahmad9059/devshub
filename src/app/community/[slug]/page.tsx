@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TRPCError } from "@trpc/server";
-import { CalendarIcon, SettingsIcon } from "lucide-react";
+import { CalendarIcon, SettingsIcon, ShieldIcon } from "lucide-react";
 
 import { JoinButton, JoinButtonSignedOut } from "~/components/join-button";
 import { AppShell } from "~/components/layout/app-shell";
@@ -20,10 +20,29 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  return {
-    title: `d/${slug} | DevsHub`,
-    description: `The ${slug} community on DevsHub.`,
-  };
+  const ctx = await createTRPCContext({ headers: new Headers() });
+  const caller = createCaller(ctx);
+
+  try {
+    const community = await caller.community.getBySlug({ slug });
+    return {
+      title: `d/${community.slug}`,
+      description:
+        community.description ?? `${community.name} — a community on DevsHub.`,
+      openGraph: {
+        title: `d/${community.slug}`,
+        description:
+          community.description ??
+          `${community.name} — a community on DevsHub.`,
+        type: "website",
+      },
+    };
+  } catch {
+    return {
+      title: `d/${slug}`,
+      description: `The ${slug} community on DevsHub.`,
+    };
+  }
 }
 
 function formatDate(date: Date): string {
@@ -94,14 +113,24 @@ export default async function CommunityPage({
                   isOwner={isOwner}
                 />
                 {(isOwner || isModerator) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    render={<Link href={`/community/${slug}/settings`} />}
-                  >
-                    <SettingsIcon aria-hidden="true" />
-                    Settings
-                  </Button>
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      render={<Link href={`/community/${slug}/moderation`} />}
+                    >
+                      <ShieldIcon aria-hidden="true" />
+                      Moderation
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      render={<Link href={`/community/${slug}/settings`} />}
+                    >
+                      <SettingsIcon aria-hidden="true" />
+                      Settings
+                    </Button>
+                  </>
                 )}
               </div>
             ) : (

@@ -14,7 +14,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { q } = await searchParams;
   return {
-    title: q ? `Search: ${q} | DevsHub` : "Search | DevsHub",
+    title: q ? `Search: ${q}` : "Search",
     description: "Search DevsHub for posts, communities, and developers.",
   };
 }

@@ -245,8 +245,47 @@ export const votes = createTable(
   ],
 );
 
+export const reportReasons = [
+  "spam",
+  "harassment",
+  "off-topic",
+  "other",
+] as const;
+export type ReportReason = (typeof reportReasons)[number];
+
+export const reportStatuses = ["open", "resolved", "dismissed"] as const;
+export type ReportStatus = (typeof reportStatuses)[number];
+
+export const reports = createTable(
+  "report",
+  (d) => ({
+    id: d.uuid().defaultRandom().primaryKey(),
+    reporterId: d
+      .uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    targetType: d.varchar({ length: 10 }).$type<VoteTargetType>().notNull(),
+    targetId: d.uuid().notNull(),
+    reason: d.varchar({ length: 20 }).$type<ReportReason>().notNull(),
+    details: d.text(),
+    status: d
+      .varchar({ length: 20 })
+      .$type<ReportStatus>()
+      .notNull()
+      .default("open"),
+    resolvedBy: d.uuid().references(() => users.id, { onDelete: "set null" }),
+    createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+  }),
+  (table) => [
+    index("report_target_idx").on(table.targetType, table.targetId),
+    index("report_status_idx").on(table.status),
+    index("report_created_at_idx").on(table.createdAt),
+  ],
+);
+
 export type Community = typeof communities.$inferSelect;
 export type CommunityMember = typeof communityMembers.$inferSelect;
 export type Post = typeof posts.$inferSelect;
 export type Comment = typeof comments.$inferSelect;
 export type Vote = typeof votes.$inferSelect;
+export type Report = typeof reports.$inferSelect;

@@ -296,4 +296,167 @@ export const communityRouter = createTRPCRouter({
 
       return { available: existing === undefined, reason: "taken" };
     }),
+
+  promoteModerator: protectedProcedure
+    .input(
+      z.object({
+        communityId: z.string().uuid(),
+        userId: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const callerId = requireUserId(ctx.session);
+
+      const community = await ctx.db.query.communities.findFirst({
+        where: (table, { eq }) => eq(table.id, input.communityId),
+        columns: { id: true, ownerId: true },
+      });
+      if (!community) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      if (community.ownerId !== callerId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the community owner can promote moderators.",
+        });
+      }
+
+      const member = await ctx.db.query.communityMembers.findFirst({
+        where: (table, { and, eq }) =>
+          and(
+            eq(table.communityId, input.communityId),
+            eq(table.userId, input.userId),
+          ),
+      });
+      if (!member) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "That user is not a member of this community.",
+        });
+      }
+
+      await ctx.db
+        .update(communityMembers)
+        .set({ role: "moderator" })
+        .where(
+          and(
+            eq(communityMembers.communityId, input.communityId),
+            eq(communityMembers.userId, input.userId),
+          ),
+        );
+
+      return { updated: true };
+    }),
+
+  demoteModerator: protectedProcedure
+    .input(
+      z.object({
+        communityId: z.string().uuid(),
+        userId: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const callerId = requireUserId(ctx.session);
+
+      const community = await ctx.db.query.communities.findFirst({
+        where: (table, { eq }) => eq(table.id, input.communityId),
+        columns: { id: true, ownerId: true },
+      });
+      if (!community) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      if (community.ownerId !== callerId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the community owner can demote moderators.",
+        });
+      }
+      if (input.userId === community.ownerId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "The owner cannot be demoted.",
+        });
+      }
+
+      await ctx.db
+        .update(communityMembers)
+        .set({ role: "member" })
+        .where(
+          and(
+            eq(communityMembers.communityId, input.communityId),
+            eq(communityMembers.userId, input.userId),
+          ),
+        );
+
+      return { updated: true };
+    }),
+
+  removeMember: protectedProcedure
+    .input(
+      z.object({
+        communityId: z.string().uuid(),
+        userId: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const callerId = requireUserId(ctx.session);
+
+      const community = await ctx.db.query.communities.findFirst({
+        where: (table, { eq }) => eq(table.id, input.communityId),
+        columns: { id: true, ownerId: true },
+      });
+      if (!community) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const callerMembership = await ctx.db.query.communityMembers.findFirst({
+        where: (table, { and, eq }) =>
+          and(
+            eq(table.communityId, input.communityId),
+            eq(table.userId, callerId),
+          ),
+      });
+      const callerRole = callerMembership?.role;
+      if (callerRole !== "owner" && callerRole !== "moderator") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only moderators can remove members.",
+        });
+      }
+
+      const targetMembership = await ctx.db.query.communityMembers.findFirst({
+        where: (table, { and, eq }) =>
+          and(
+            eq(table.communityId, input.communityId),
+            eq(table.userId, input.userId),
+          ),
+        columns: { role: true },
+      });
+      if (!targetMembership) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      if (targetMembership.role === "owner") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "The owner cannot be removed.",
+        });
+      }
+
+      await ctx.db.batch([
+        ctx.db
+          .delete(communityMembers)
+          .where(
+            and(
+              eq(communityMembers.communityId, input.communityId),
+              eq(communityMembers.userId, input.userId),
+            ),
+          ),
+        ctx.db
+          .update(communities)
+          .set({ memberCount: sql`${communities.memberCount} - 1` })
+          .where(eq(communities.id, input.communityId)),
+      ]);
+
+      return { removed: true };
+    }),
 });

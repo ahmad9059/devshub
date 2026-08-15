@@ -7,6 +7,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
+import { checkRateLimit, voteLimiter } from "~/server/lib/ratelimit";
 import { comments, posts, votes } from "~/server/db/schema";
 
 const voteValueSchema = z.union([z.literal(1), z.literal(-1)]);
@@ -35,6 +36,8 @@ export const voteRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const userId = requireUserId(ctx.session);
+
+      await checkRateLimit(voteLimiter, `vote:${userId}`);
 
       if (input.targetType === "post") {
         const post = await ctx.db.query.posts.findFirst({

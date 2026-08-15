@@ -6,6 +6,7 @@ import { MessageSquarePlusIcon, PencilIcon, Trash2Icon } from "lucide-react";
 
 import { CommentInput } from "~/components/comment-input";
 import { Markdown } from "~/components/markdown";
+import { ReportDialog } from "~/components/report-dialog";
 import { UserAvatar } from "~/components/user-avatar";
 import { VoteButton } from "~/components/vote-button";
 import { Button } from "~/components/ui/button";
@@ -167,6 +168,7 @@ export function CommentCard({
               </Button>
             </>
           )}
+          <ReportDialog targetType="comment" targetId={comment.id} />
         </div>
       )}
 

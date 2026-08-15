@@ -1,6 +1,6 @@
 # QA Report — DevsHub Social Platform
 
-> Status: Phases 1–8 completed and verified. Remaining phases pending.
+> Status: Phases 1–9 completed and verified. Phase 10 remaining.
 
 ## What Was Reviewed
 
@@ -12,6 +12,7 @@
 - [x] Phase 6: Comments & Replies
 - [x] Phase 7: Voting & Ranking
 - [x] Phase 8: Search & Discovery
+- [x] Phase 9: Moderation & Safety
 - [ ] Phase 2: Database Schema
 - [ ] Phase 3: User Profiles
 - [ ] Phase 4: Communities
@@ -31,6 +32,7 @@
 - Phase 6 added threaded comments: comment router (create/list/update/delete), recursive comment tree with indentation, comment input for top-level/replies, comment sorting (best/new/top), collapsible threads, soft-delete "[deleted]", and markdown in comments.
 - Phase 7 added voting & ranking: vote router (cast with toggle/change semantics), optimistic vote buttons on posts and comments, Reddit hot ranking, `myVote` state in feeds.
 - Phase 8 added search & discovery: GIN full-text indexes, search router (posts/communities/users/trending), search bar, `/search` results page with tabs, `/explore` page, and a trending widget.
+- Phase 9 added moderation & safety: reports table + router, moderator actions (modDelete on posts/comments, promote/demote/removeMember), Upstash Redis rate limiting, report dialog, moderation queue page, and content policy page.
 
 ## Files Changed
 
@@ -41,6 +43,7 @@
 - Phase 6: `src/server/api/routers/comment.ts` (new), `src/server/api/root.ts` (register), `src/components/comment-input.tsx` (new), `src/components/comment-card.tsx` (new), `src/components/comment-tree.tsx` (new), `src/app/post/[slug]/page.tsx` (comment section), `src/server/db/seed.ts` (corrected commentCount values).
 - Phase 7: `src/server/api/routers/vote.ts` (new), `src/server/api/root.ts` (register), `src/components/vote-button.tsx` (new), `src/components/post-card.tsx` (vote button + myVote), `src/components/comment-card.tsx` (vote button + myVote), `src/components/post-feed.tsx` (isLoggedIn prop), `src/server/api/routers/post.ts` (myVote + hot ranking), `src/server/api/routers/comment.ts` (myVote), `src/app/page.tsx` + `src/app/community/[slug]/page.tsx` (isLoggedIn), `src/app/post/[slug]/page.tsx` (post vote button).
 - Phase 8: `src/server/db/schema.ts` (GIN FTS indexes), `drizzle/0005_grey_anita_blake.sql`, `src/server/api/routers/search.ts` (new), `src/server/api/root.ts` (register), `src/components/search-bar.tsx` (new), `src/app/search/page.tsx` + `search-results.tsx` (new), `src/app/explore/page.tsx` (new), `src/components/trending-widget.tsx` (new), `src/components/layout/app-shell.tsx` (search bar + trending widget + Explore nav).
+- Phase 9: `src/server/db/schema.ts` (reports table + relations), `drizzle/0006_tidy_chameleon.sql`, `src/server/api/routers/report.ts` (new), `src/server/api/routers/post.ts` (modDelete + post rate limit), `src/server/api/routers/comment.ts` (modDelete + comment rate limit), `src/server/api/routers/vote.ts` (vote rate limit), `src/server/api/routers/community.ts` (promoteModerator/demoteModerator/removeMember), `src/server/lib/ratelimit.ts` (new), `src/server/api/root.ts` (register report), `src/components/report-dialog.tsx` (new), `src/app/community/[slug]/moderation/page.tsx` + `moderation-queue.tsx` (new), `src/app/policy/page.tsx` (new), `src/app/community/[slug]/page.tsx` (Moderation button), `src/app/post/[slug]/page.tsx` + `src/components/comment-card.tsx` (report buttons), `src/components/ui/dialog.tsx` (installed), `src/components/layout/app-shell.tsx` (policy link), `src/env.js` + `.env.example` (Upstash vars), `package.json` (@upstash/redis, @upstash/ratelimit).
 
 ## Migrations Added
 
@@ -115,12 +118,12 @@
 - [x] Trending widget renders (right sidebar, View all → /explore)
 
 ### Moderation Flows
-- [ ] Report post works
-- [ ] Report comment works
-- [ ] Moderator queue renders
-- [ ] Moderator delete works
-- [ ] Resolve/dismiss report works
-- [ ] Rate limiting triggers on excess posts
+- [x] Report post works (dialog with reason + details)
+- [x] Report comment works (dialog on comment cards)
+- [x] Moderator queue renders (reports with target, reporter, reason, status)
+- [x] Moderator delete works (modDelete on posts/comments)
+- [x] Resolve/dismiss report works (status transitions open → resolved/dismissed)
+- [x] Rate limiting triggers on excess posts (429 TOO_MANY_REQUESTS)
 
 ### Layout & Responsive
 - [x] Dark mode default
@@ -243,6 +246,21 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - [x] Public — no login required (verified without cookie)
 - [x] All search procedures use `plainto_tsquery` + GIN indexes for performance
 
+## Moderation QA (Phase 9)
+
+- [x] Reports table created + migrated (`devshub_report`), with relations (reporter/resolver)
+- [x] `report.create` — validates target exists/not deleted; `report.listForCommunity` (mod-only) returns reports with reporter/resolver; `report.resolve` transitions status
+- [x] Permission checks: non-mod can't list queue or resolve (FORBIDDEN), owner can promote/demote/removeMember
+- [x] `post.modDelete` / `comment.modDelete` — mod-only soft delete; verified carol (member) FORBIDDEN, bob (promoted moderator) deleted
+- [x] `community.promoteModerator` / `demoteModerator` / `removeMember` verified (owner-only for promote/demote; mod can remove members)
+- [x] Rate limiting via Upstash Redis: 5 posts/10min verified (posts 1-5 ok, 6+ → 429 TOO_MANY_REQUESTS); comment (20/10min) + vote (100/10min) limiters wired; in-memory fallback for dev before credentials
+- [x] Report dialog UI: reason select + details + submit; report persisted (verified in DB)
+- [x] Moderation queue page: reports render with badges, reporter, details; Resolve/Dismiss/Delete actions; status → resolved hides actions
+- [x] Content policy page renders at `/policy`; linked from right sidebar
+- [x] Moderation button on community page for owner/moderator
+- [x] shadcn `dialog` component installed (base-nova preset)
+- [x] Seed restored clean after testing
+
 ## Architecture Decisions (Phase 1)
 
 - **Session strategy: JWT, not database.** Auth.js v5 beta is incompatible with the Credentials provider when using `session.strategy: "database"` — the sign-in returns a JWE cookie but no DB session row is created and `auth()` resolves to `null`. Switched to `session: { strategy: "jwt" }` with `jwt`/`session` callbacks exposing `session.user.id`. The Drizzle adapter is still installed and used for OAuth user/account storage.
@@ -254,17 +272,17 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - OAuth (Google/GitHub) flows are configured with real credentials but not fully E2E-tested in a browser (would redirect to the provider).
 - `AUTH_URL` currently set to `http://localhost:3001` in `.env` (project uses port 3001 locally).
 - Image-post creation flow shares the verified S3 pipeline but wasn't re-tested via UI this phase.
-- Community deletion UI not yet implemented (deferred to Phase 9 moderation).
-- Search autocomplete/typeahead, filters, and saved searches deferred (out of scope per plan).
+- Global admin dashboard, automated content filtering, bans, appeals, and audit log deferred (out of scope per plan).
+- Community deletion UI still not implemented (deferred; owner has promote/demote/removeMember but no delete-community action).
 
 ## P0/P1/P2 Status
 | Severity | Count | Resolved |
 |---|---|---|
 | P0 | 5 | 5 |
-| P1 | 4 | 2 |
+| P1 | 4 | 3 |
 | P2 | 4 | 0 |
 
-Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved. Phase 2 owned P0 issues 7, 8 and P2 issue 15 (Neon HTTP: no pooling by design, no transactions → `db.batch()`). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model. Phase 5 delivered issue 6 (three-column layout shell). Phase 6 delivered threaded comments. Phase 7 delivered voting & ranking. Phase 8 delivered issue 13 (no search functionality) — resolved: FTS + GIN indexes, search router, search/explore pages, trending widget. P1 issue 9 (rate limiting) remains for Phase 9.
+Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved. Phase 2 owned P0 issues 7, 8 and P2 issue 15 (Neon HTTP: no pooling by design, no transactions → `db.batch()`). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model. Phase 5 delivered issue 6 (three-column layout shell). Phase 6 delivered threaded comments. Phase 7 delivered voting & ranking. Phase 8 delivered issue 13 (no search) — resolved. Phase 9 delivered issues 9 (rate limiting) and 14 (no moderation tools) — resolved: Upstash rate limiting, moderator roles/actions, reports, moderation queue. All P1 issues now resolved (P1 count moved to 3: issues 5, 10, 9).
 
 ## Recommendations Before Production
 

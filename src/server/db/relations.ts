@@ -6,6 +6,7 @@ import {
   communities,
   communityMembers,
   posts,
+  reports,
   sessions,
   users,
   verificationTokens,
@@ -19,6 +20,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   comments: many(comments),
   votes: many(votes),
   memberships: many(communityMembers),
+  reports: many(reports, { relationName: "report_reporter" }),
+  resolvedReports: many(reports, { relationName: "report_resolver" }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -98,5 +101,18 @@ export const votesRelations = relations(votes, ({ one }) => ({
   user: one(users, {
     fields: [votes.userId],
     references: [users.id],
+  }),
+}));
+
+export const reportsRelations = relations(reports, ({ one }) => ({
+  reporter: one(users, {
+    fields: [reports.reporterId],
+    references: [users.id],
+    relationName: "report_reporter",
+  }),
+  resolver: one(users, {
+    fields: [reports.resolvedBy],
+    references: [users.id],
+    relationName: "report_resolver",
   }),
 }));

@@ -21,10 +21,26 @@ export async function generateMetadata({
   params: Promise<{ username: string }>;
 }): Promise<Metadata> {
   const { username } = await params;
-  return {
-    title: `@${username} | DevsHub`,
-    description: `Profile of ${username} on DevsHub.`,
-  };
+  const ctx = await createTRPCContext({ headers: new Headers() });
+  const caller = createCaller(ctx);
+
+  try {
+    const user = await caller.profile.getByUsername({ username });
+    return {
+      title: `@${user.username}`,
+      description: user.bio ?? `${user.name ?? user.username} on DevsHub.`,
+      openGraph: {
+        title: `@${user.username}`,
+        description: user.bio ?? `${user.name ?? user.username} on DevsHub.`,
+        type: "profile",
+      },
+    };
+  } catch {
+    return {
+      title: `@${username}`,
+      description: `Profile of ${username} on DevsHub.`,
+    };
+  }
 }
 
 function formatDate(date: Date): string {

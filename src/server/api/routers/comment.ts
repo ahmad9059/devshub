@@ -7,6 +7,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
+import { checkRateLimit, commentLimiter } from "~/server/lib/ratelimit";
 import { comments, posts } from "~/server/db/schema";
 
 const MAX_DEPTH = 5;
@@ -32,6 +33,8 @@ export const commentRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const userId = requireUserId(ctx.session);
+
+      await checkRateLimit(commentLimiter, `comment:${userId}`);
 
       const post = await ctx.db.query.posts.findFirst({
         where: (table, { eq }) => eq(table.id, input.postId),
@@ -224,6 +227,42 @@ export const commentRouter = createTRPCRouter({
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can only delete your own comments.",
+        });
+      }
+
+      await ctx.db
+        .update(comments)
+        .set({ deletedAt: new Date(), body: "[deleted]" })
+        .where(eq(comments.id, input.id));
+
+      return { deleted: true };
+    }),
+
+  modDelete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = requireUserId(ctx.session);
+      const comment = await ctx.db.query.comments.findFirst({
+        where: (table, { eq }) => eq(table.id, input.id),
+        with: { post: { columns: { communityId: true, deletedAt: true } } },
+      });
+      if (!comment || comment.deletedAt || comment.post.deletedAt) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      // Caller must be a moderator/owner of the comment's post's community.
+      const membership = await ctx.db.query.communityMembers.findFirst({
+        where: (table, { and, eq }) =>
+          and(
+            eq(table.communityId, comment.post.communityId),
+            eq(table.userId, userId),
+          ),
+      });
+      const role = membership?.role;
+      if (role !== "owner" && role !== "moderator") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only moderators can remove comments.",
         });
       }
 

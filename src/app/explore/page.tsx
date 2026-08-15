@@ -10,7 +10,7 @@ import { createTRPCContext } from "~/server/api/trpc";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Explore | DevsHub",
+  title: "Explore",
   description: "Trending communities and popular posts on DevsHub.",
 };
 

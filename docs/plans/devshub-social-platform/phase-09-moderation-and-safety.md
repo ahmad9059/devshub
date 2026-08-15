@@ -114,24 +114,25 @@ Enable community owners and moderators to manage content in their communities. A
 
 ## 6. Acceptance Criteria / QA Checklist
 
-- [ ] User can report a post or comment via report dialog
-- [ ] Moderator can view reports in community moderation queue
-- [ ] Moderator can delete posts/comments in their community
-- [ ] Moderator can resolve or dismiss reports
-- [ ] Owner can promote/demote moderators
-- [ ] Owner can remove members from community
-- [ ] Rate limiting prevents exceeding 5 posts / 10 minutes
-- [ ] Rate limiting prevents exceeding 20 comments / 10 minutes
-- [ ] Rate limit returns clear error message
-- [ ] Content policy page renders at `/policy`
-- [ ] Non-moderator cannot access moderation queue
-- [ ] `pnpm check` and `pnpm build` pass
-- [ ] All UI uses shadcn semantic tokens
+- [x] User can report a post or comment via report dialog
+- [x] Moderator can view reports in community moderation queue
+- [x] Moderator can delete posts/comments in their community
+- [x] Moderator can resolve or dismiss reports
+- [x] Owner can promote/demote moderators
+- [x] Owner can remove members from community
+- [x] Rate limiting prevents exceeding 5 posts / 10 minutes
+- [x] Rate limiting prevents exceeding 20 comments / 10 minutes
+- [x] Rate limit returns clear error message
+- [x] Content policy page renders at `/policy`
+- [x] Non-moderator cannot access moderation queue
+- [x] `pnpm check` and `pnpm build` pass
+- [x] All UI uses shadcn semantic tokens
 
 ## 7. Open Questions
 
-1. Should rate limiting use Upstash Redis or a simpler in-memory approach? **Recommendation: Upstash Redis** — required for serverless (Vercel), in-memory doesn't work across instances.
-2. Should reports be anonymous? **Recommendation: no for launch** — moderators see who reported. Add anonymous later if needed.
+1. Should rate limiting use Upstash Redis or a simpler in-memory approach? **Resolved: Upstash Redis** (with an in-memory fallback so local dev works before credentials are set). Sliding-window limiter; env vars `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
+2. Should reports be anonymous? **Resolved: no for launch** — moderators see who reported. Add anonymous later if needed.
+3. **Note:** shadcn `dialog` component installed (base-nova preset).
 
 ## 8. Skills to Load
 

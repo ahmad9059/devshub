@@ -51,7 +51,7 @@ import {
 } from "~/components/ui/tooltip";
 
 export const metadata = {
-  title: "Design System | DevsHub",
+  title: "Design System",
   description:
     "The shared visual language and component reference for DevsHub.",
 };
