@@ -4,7 +4,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { z } from "zod";
 
 import { env } from "~/env";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { s3 } from "~/server/s3";
 
 const imageType = z.enum([
@@ -15,7 +15,7 @@ const imageType = z.enum([
 ]);
 
 export const storageRouter = createTRPCRouter({
-  createImageUpload: publicProcedure
+  createImageUpload: protectedProcedure
     .input(
       z.object({
         contentType: imageType,

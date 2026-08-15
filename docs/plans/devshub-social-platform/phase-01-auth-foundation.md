@@ -149,22 +149,22 @@ Enable users to sign up and log in using Google, GitHub, or email/password (cust
 
 ## 6. Acceptance Criteria / QA Checklist
 
-- [ ] `pnpm check` passes (lint + typecheck)
-- [ ] `pnpm build` succeeds
-- [ ] Google login redirects to Google, returns with session
-- [ ] GitHub login redirects to GitHub, returns with session
-- [ ] Email/password signup creates a user in the database
-- [ ] Email/password login establishes a session
-- [ ] Unauthenticated user visiting `/profile` is redirected to `/login`
-- [ ] Unauthenticated user can view `/` (home) without redirect
-- [ ] `storage.createImageUpload` returns UNAUTHORIZED for unauthenticated callers
-- [ ] Turnstile widget renders on login and signup pages
-- [ ] No hardcoded colors — all shadcn semantic tokens
-- [ ] Dark mode is default; login/signup pages render correctly in dark and light
+- [x] `pnpm check` passes (lint + typecheck)
+- [x] `pnpm build` succeeds
+- [ ] Google login redirects to Google, returns with session (wired; needs real credentials)
+- [ ] GitHub login redirects to GitHub, returns with session (wired; needs real credentials)
+- [x] Email/password signup creates a user in the database
+- [x] Email/password login establishes a session
+- [x] Unauthenticated user visiting `/profile` is redirected to `/login`
+- [x] Unauthenticated user can view `/` (home) without redirect
+- [x] `storage.createImageUpload` returns UNAUTHORIZED for unauthenticated callers
+- [x] Turnstile widget renders on login and signup pages
+- [x] No hardcoded colors — all shadcn semantic tokens
+- [x] Dark mode is default; login/signup pages render correctly in dark and light
 
 ## 7. Open Questions
 
-1. Should we use database sessions or JWT sessions? **Recommendation: database sessions** — works natively with Drizzle adapter and Neon.
+1. Should we use database sessions or JWT sessions? **Resolved: JWT.** Auth.js v5 beta with the Credentials provider does not persist database sessions — sign-in returns a JWE cookie but no `devshub_session` row is created and `auth()` resolves to `null`. JWT strategy with `jwt`/`session` callbacks works reliably for all three providers.
 2. Should signup require email verification? **Recommendation: no for launch** — OAuth providers handle email; credentials provider is secondary.
 
 ## 8. Skills to Load
