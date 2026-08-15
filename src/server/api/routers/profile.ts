@@ -58,10 +58,12 @@ export const profileRouter = createTRPCRouter({
         where: (table, { eq }) => eq(table.username, input.username),
         with: {
           posts: {
+            where: (table, { isNull }) => isNull(table.deletedAt),
             with: { community: true },
             orderBy: (table, { desc }) => [desc(table.createdAt)],
           },
           comments: {
+            where: (table, { isNull }) => isNull(table.deletedAt),
             with: { post: { with: { community: true } } },
             orderBy: (table, { desc }) => [desc(table.createdAt)],
           },
@@ -84,8 +86,14 @@ export const profileRouter = createTRPCRouter({
       columns: publicUserColumns,
       where: (table, { eq }) => eq(table.id, userId),
       with: {
-        posts: { with: { community: true } },
-        comments: { with: { post: true } },
+        posts: {
+          where: (table, { isNull }) => isNull(table.deletedAt),
+          with: { community: true },
+        },
+        comments: {
+          where: (table, { isNull }) => isNull(table.deletedAt),
+          with: { post: true },
+        },
         memberships: { with: { community: true } },
       },
     });

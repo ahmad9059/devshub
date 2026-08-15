@@ -1,6 +1,6 @@
 # QA Report — DevsHub Social Platform
 
-> Status: Phases 1–4 completed and verified. Remaining phases pending.
+> Status: Phases 1–5 completed and verified. Remaining phases pending.
 
 ## What Was Reviewed
 
@@ -8,6 +8,7 @@
 - [x] Phase 2: Database Schema
 - [x] Phase 3: User Profiles
 - [x] Phase 4: Communities
+- [x] Phase 5: Posts & Feed
 - [ ] Phase 2: Database Schema
 - [ ] Phase 3: User Profiles
 - [ ] Phase 4: Communities
@@ -23,12 +24,14 @@
 - Phase 2 added the full domain schema and seed data (see "Migrations Added" below).
 - Phase 3 added user profile fields, profile pages, avatar upload, and username onboarding.
 - Phase 4 added community creation, community pages, join/leave, community list, and owner/moderator settings.
+- Phase 5 added the three-column layout shell, post creation, home/community feeds with sorting + infinite scroll, markdown rendering, and the post detail page with edit/delete.
 
 ## Files Changed
 
 - Phase 2: `src/server/db/schema.ts`, `src/server/db/relations.ts` (new), `src/server/db/seed.ts` (new), `src/server/db/index.ts`, `drizzle/0001_safe_thundra.sql`, `package.json` (`db:seed`, `tsx` dev dep).
 - Phase 3: `src/server/db/schema.ts` (username/bio/avatarObjectKey/usernameUpdatedAt + post slug), `drizzle/0002_sad_green_goblin.sql` + `0003_needy_swordsman.sql` + `0004_tan_spitfire.sql`, `src/server/api/routers/profile.ts` (new), `src/server/api/routers/storage.ts` (getSignedDownloadUrl), `src/server/s3.ts`, `src/components/user-avatar.tsx`, `avatar-uploader.tsx`, `onboarding-guard.tsx`, `src/app/settings/page.tsx`, `onboarding/page.tsx`, `user/[username]/page.tsx`, `src/proxy.ts` (x-pathname + onboarding), `src/app/layout.tsx`.
-- Phase 4: `src/server/api/routers/community.ts` (new), `src/server/api/root.ts` (register), `src/app/create-community/page.tsx` (new), `src/app/community/[slug]/page.tsx` (new), `src/app/community/[slug]/settings/page.tsx` (new), `src/components/join-button.tsx` (new), `src/components/community-list.tsx` (new), `src/components/image-upload-button.tsx` (new), `src/proxy.ts` (protect /create-community), `d/` prefix across community UI.
+- Phase 4: `src/server/api/routers/community.ts` (new), `src/server/api/root.ts` (register), `src/app/create-community/page.tsx` (new), `src/app/community/[slug]/page.tsx` (new), `src/app/community/[slug]/settings/page.tsx` (new), `src/components/join-button.tsx` (new), `community-list.tsx` (new), `image-upload-button.tsx` (new), `src/proxy.ts` (protect /create-community), `d/` prefix across community UI.
+- Phase 5: `src/server/api/routers/post.ts` (new), `src/server/api/root.ts` (register), `src/components/layout/app-shell.tsx` (new, three-column), `src/components/post-card.tsx` (new), `src/components/post-feed.tsx` (new, infinite scroll + sort tabs), `src/components/markdown.tsx` (new), `src/components/post-actions.tsx` (new), `src/app/page.tsx` (home feed), `src/app/submit/page.tsx` + `submit-form.tsx` (new), `src/app/community/[slug]/page.tsx` (feed), `src/app/post/[slug]/page.tsx` (new, detail) + `edit/page.tsx` + `edit-post-form.tsx`, `package.json` (react-markdown, remark-gfm, rehype-sanitize).
 
 ## Migrations Added
 
@@ -70,13 +73,14 @@
 - [x] Community settings (owner/moderator) works — non-owner blocked with explanatory alert
 
 ### Post Flows
-- [ ] Create text post works
-- [ ] Create image post works
-- [ ] Home feed renders with infinite scroll
-- [ ] Community feed renders
-- [ ] Sorting tabs (Hot/New/Top) work
-- [ ] Post detail page renders
-- [ ] Post delete works
+- [x] Create text post works (community selector, title, markdown body)
+- [ ] Create image post works (S3 pipeline wired; image test not repeated this phase)
+- [x] Home feed renders with infinite scroll (10 → 13 posts on scroll)
+- [x] Community feed renders (only that community's posts)
+- [x] Sorting tabs (Hot/New/Top) work
+- [x] Post detail page renders (markdown body, author/community/score)
+- [x] Post delete works (soft delete → 404 + excluded from feeds)
+- [x] Post edit works (title/body update)
 
 ### Comment Flows
 - [ ] Top-level comment works
@@ -175,6 +179,22 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - [x] Community prefix is `d/` (e.g. `d/reactjs`), matching DevsHub brand
 - [x] **Neon-http driver has NO transaction support** (`.transaction()` throws at runtime) — switched to `db.batch()` for multi-statement atomic ops
 
+## Posts QA (Phase 5)
+
+- [x] Three-column layout at 1440px (left nav + top communities, center feed, right user/about)
+- [x] Single column at 375px (sidebars hidden)
+- [x] Unauthenticated: header "Log in", right sidebar "Join DevsHub" card, `/submit` redirects to `/login`
+- [x] `post.create` — membership required (FORBIDDEN otherwise), body-or-image required, community `postCount` incremented
+- [x] `post.list` cursor pagination with Hot (score,createdAt), New (createdAt), Top (score) sorts
+- [x] `post.getBySlug` returns author + community; deleted posts → NOT_FOUND (404)
+- [x] `post.update`/`post.delete` — author-only (FORBIDDEN otherwise); soft delete via `deletedAt`
+- [x] Deleted posts excluded from `post.list`, `post.listByUser`, community `getBySlug`, and profile queries (`isNull(deletedAt)` filters added)
+- [x] Markdown rendering (GFM + sanitize): headings, bold/italic, lists, blockquote, code, links (target=_blank)
+- [x] Infinite scroll verified (IntersectionObserver + `useInfiniteQuery` loaded page 2)
+- [x] Edit/delete UI only visible to post author (Edit link + Delete confirm flow)
+- [x] Community `Select` shows `d/slug` label (fixed raw-UUID display via `SelectValue` children-as-function)
+- [x] Client pages that use `AppShell` refactored into server page + client form to avoid pulling the server-only graph into the client bundle
+
 ## Architecture Decisions (Phase 1)
 
 - **Session strategy: JWT, not database.** Auth.js v5 beta is incompatible with the Credentials provider when using `session.strategy: "database"` — the sign-in returns a JWE cookie but no DB session row is created and `auth()` resolves to `null`. Switched to `session: { strategy: "jwt" }` with `jwt`/`session` callbacks exposing `session.user.id`. The Drizzle adapter is still installed and used for OAuth user/account storage.
@@ -185,9 +205,10 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 
 - OAuth (Google/GitHub) flows are configured with real credentials but not fully E2E-tested in a browser (would redirect to the provider).
 - `AUTH_URL` currently set to `http://localhost:3001` in `.env` (project uses port 3001 locally).
-- Post detail pages (`/post/...`) don't exist yet — profile + community pages link to them (Phase 5).
+- Comments section on post detail is a placeholder (Phase 6).
+- Voting UI not present (Phase 7); score is read-only for now.
+- Image-post creation flow shares the verified S3 pipeline but wasn't re-tested via UI this phase (Phase 3 avatar upload already exercised the same presigned PUT path).
 - Community deletion UI not yet implemented (deferred to Phase 9 moderation).
-- Community `postCount` counter not yet maintained (no post creation endpoints until Phase 5).
 
 ## P0/P1/P2 Status
 | Severity | Count | Resolved |
@@ -196,7 +217,7 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 | P1 | 4 | 2 |
 | P2 | 4 | 0 |
 
-Phase 1 owned P0 issues 1 (no auth), 2 (unprotected storage mutation), 4 (no route protection), 5 (TRPCReactProvider not mounted) and P1 issue 10 (bot protection) — resolved, with real Turnstile keys now verified E2E. Phase 2 owned P0 issues 7 (no post/comment/vote schema), 8 (no community schema) and P2 issue 15 (Neon HTTP driver) — resolved except issue 15 (HTTP driver has no pooling by design; also no transaction support — `db.batch()` used instead). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model (create/join/leave/update/list) on top of the Phase 2 schema. P1 count resolved remains 2 (issue 5 TRPCReactProvider + issue 10 Turnstile); issue 9 (rate limiting) is still Phase 9.
+Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved. Phase 2 owned P0 issues 7, 8 and P2 issue 15 (Neon HTTP: no pooling by design, no transactions → `db.batch()`). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model. Phase 5 delivered issue 6 (three-column layout shell) — resolved: layout, feeds, post creation, markdown detail page. P1 issue 9 (rate limiting) remains for Phase 9.
 
 ## Recommendations Before Production
 

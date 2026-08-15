@@ -99,6 +99,7 @@ export const communityRouter = createTRPCRouter({
         with: {
           owner: true,
           posts: {
+            where: (table, { isNull }) => isNull(table.deletedAt),
             with: { author: true, community: true },
             orderBy: (table, { desc }) => [desc(table.createdAt)],
           },

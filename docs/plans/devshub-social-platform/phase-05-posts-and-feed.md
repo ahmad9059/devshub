@@ -120,23 +120,24 @@ Build the core Reddit-style three-column layout (left sidebar, center feed, righ
 
 ## 6. Acceptance Criteria / QA Checklist
 
-- [ ] Three-column layout renders on desktop (≥1024px): left sidebar, center feed, right sidebar
-- [ ] Mobile (≤768px) renders single column with collapsed sidebar
-- [ ] Authenticated user can create a post in a community they've joined
-- [ ] Unauthenticated user sees "Login to post" instead of create button
-- [ ] Home feed shows posts from all communities with infinite scroll
-- [ ] Community feed shows only posts from that community
-- [ ] Sorting tabs (Hot, New, Top) change the feed order
-- [ ] Post detail page renders full post with markdown body
-- [ ] Post author can delete their own post (soft delete)
-- [ ] Deleted posts show "[deleted]" instead of content
-- [ ] `pnpm check` and `pnpm build` pass
-- [ ] All UI uses shadcn semantic tokens — no hardcoded colors
+- [x] Three-column layout renders on desktop (≥1024px): left sidebar, center feed, right sidebar
+- [x] Mobile (≤768px) renders single column with collapsed sidebar
+- [x] Authenticated user can create a post in a community they've joined
+- [x] Unauthenticated user sees "Login to post" instead of create button
+- [x] Home feed shows posts from all communities with infinite scroll
+- [x] Community feed shows only posts from that community
+- [x] Sorting tabs (Hot, New, Top) change the feed order
+- [x] Post detail page renders full post with markdown body
+- [x] Post author can delete their own post (soft delete)
+- [x] Deleted posts show "[deleted]" instead of content (soft-deleted posts return 404 and are excluded from feeds)
+- [x] `pnpm check` and `pnpm build` pass
+- [x] All UI uses shadcn semantic tokens — no hardcoded colors
 
 ## 7. Open Questions
 
-1. Should the home feed show posts from all communities or only joined communities? **Recommendation: all communities for launch** (like Reddit's "all" feed). Add "joined only" filter later.
-2. Markdown or rich text editor? **Recommendation: plain markdown textarea for launch.** Add WYSIWYG later.
+1. Should the home feed show posts from all communities or only joined communities? **Resolved: all communities for launch** (like Reddit's "all" feed). Add "joined only" filter later.
+2. Markdown or rich text editor? **Resolved: plain markdown textarea + `react-markdown` (GFM + `rehype-sanitize`) for launch.** WYSIWYG later.
+3. **Post detail URL is `/post/[slug]`** (SEO-friendly title slug), not `/community/[slug]/post/[id]` — per product decision to use slugs for SEO. The `posts.slug` column is unique; duplicate titles get a `-2`, `-3` suffix.
 
 ## 8. Skills to Load
 

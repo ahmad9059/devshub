@@ -1,10 +1,10 @@
 # Completion Report — DevsHub Social Platform
 
-> Status: Phases 1–4 completed. Remaining phases pending.
+> Status: Phases 1–5 completed. Remaining phases pending.
 
 ## Summary
 
-Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials, Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile). Phase 2 delivered the complete domain schema — communities, community memberships, posts, comments, and polymorphic votes — plus Drizzle relations, migrations, and an idempotent seed script. Phase 3 delivered user profiles: username/bio/avatar, a profile tRPC router, a public profile page, settings with avatar upload, and username onboarding. Phase 4 delivered communities: a community tRPC router (create/getBySlug/list/listMine/join/leave/update/checkSlug), the create-community page, the public community page with posts feed, optimistic join/leave, a community list component, and owner/moderator-only settings. Community URLs use the `d/` prefix (e.g. `d/reactjs`). A key finding: the Neon HTTP driver does not support transactions, so multi-statement writes use `db.batch()`.
+Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials, Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile). Phase 2 delivered the complete domain schema — communities, community memberships, posts, comments, and polymorphic votes — plus Drizzle relations, migrations, and an idempotent seed script. Phase 3 delivered user profiles (username/bio/avatar, profile pages, settings, onboarding). Phase 4 delivered communities (create/join/leave/update/list with the `d/` prefix). Phase 5 delivered the core three-column layout shell, a post tRPC router (create/getBySlug/list/listByUser/update/delete), the home feed with Hot/New/Top sorting and cursor-based infinite scroll, per-community feeds, markdown rendering (GFM + sanitize), post creation, and the post detail page at `/post/[slug]` with author-only edit/delete (soft delete). Post URLs use SEO-friendly title slugs per product decision.
 
 ## Phases Completed
 
@@ -12,7 +12,7 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - [x] Phase 2: Database Schema
 - [x] Phase 3: User Profiles
 - [x] Phase 4: Communities
-- [ ] Phase 5: Posts & Feed
+- [x] Phase 5: Posts & Feed
 - [ ] Phase 6: Comments & Replies
 - [ ] Phase 7: Voting & Ranking
 - [ ] Phase 8: Search & Discovery
@@ -21,7 +21,7 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 
 ## Agents / Developers Involved
 
-- opencode (deepseek-v4-flash) — implemented Phases 1, 2, 3, and 4
+- opencode (deepseek-v4-flash) — implemented Phases 1, 2, 3, 4, and 5
 
 ## Files Changed
 
@@ -82,7 +82,19 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - UI: community prefix is `d/` (e.g. `d/reactjs`) across community/profile/list pages
 
 ### Phase 5 — Posts & Feed
-<!-- files -->
+- `src/server/api/routers/post.ts` — new, post router (create/getBySlug/list/listByUser/update/delete); cursor pagination (hot/new/top); author-only edit/delete; soft delete; deleted-post filters across routers
+- `src/server/api/root.ts` — registered `post` router
+- `src/components/layout/app-shell.tsx` — new, three-column layout (left nav + communities, center, right user/about)
+- `src/components/post-card.tsx` — new, reusable post card (title, community, author, points, comments)
+- `src/components/post-feed.tsx` — new, client feed with Hot/New/Top tabs + `useInfiniteQuery` + IntersectionObserver infinite scroll
+- `src/components/markdown.tsx` — new, GFM markdown renderer with `rehype-sanitize` and shadcn styling
+- `src/components/post-actions.tsx` — new, author-only delete with confirm
+- `src/app/page.tsx` — home feed (replaces "Under construction")
+- `src/app/submit/page.tsx` + `submit-form.tsx` — new, create post (community select, title, markdown body, image)
+- `src/app/community/[slug]/page.tsx` — updated to use `PostFeed` (sorting + infinite scroll)
+- `src/app/post/[slug]/page.tsx` — new, post detail with markdown, edit/delete for author, comments placeholder
+- `src/app/post/[slug]/edit/page.tsx` + `edit-post-form.tsx` — new, edit post (title/body)
+- `package.json` — added `react-markdown`, `remark-gfm`, `rehype-sanitize`
 
 ### Phase 6 — Comments & Replies
 <!-- files -->
@@ -104,20 +116,20 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - [x] `pnpm check` passes
 - [x] `pnpm build` passes
 - [ ] `pnpm format:check` passes (docs + lockfile formatting pending; source is clean)
-- [x] Phase 1–4 E2E flows pass (see QA-REPORT.md)
+- [x] Phase 1–5 E2E flows pass (see QA-REPORT.md)
 - [ ] Lighthouse scores meet thresholds (deferred to Phase 10)
 - [ ] Production deployment successful (deferred to Phase 10)
 
 ## Known Gaps
 
 - OAuth (Google/GitHub) providers configured with real credentials but not E2E-tested in a browser.
-- Post detail pages (`/post/...`) don't exist yet — profile + community pages link to them (Phase 5).
-- No logout button yet (will arrive with the app shell in Phase 5).
+- Comments section on post detail is a placeholder (Phase 6).
+- Voting UI not present (Phase 7); score is read-only.
+- Image-post creation uses the shared S3 pipeline (verified via avatar upload in Phase 3) but wasn't re-tested via UI this phase.
 - Community deletion UI not implemented (deferred to Phase 9).
-- Community `postCount` not yet maintained (no post-creation endpoints until Phase 5).
 - Auth.js v5 Credentials provider forced JWT session strategy (documented deviation from plan).
 - No search GIN indexes yet (Phase 8); no moderation tables yet (Phase 9).
 
 ## Next Steps
 
-- Phase 5: Posts & Feed (three-column layout shell, create post, home feed, community feed, post detail page at `/post/[slug]`).
+- Phase 6: Comments & Replies (comment tree, nested replies, post comment section).

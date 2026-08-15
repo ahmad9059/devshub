@@ -10,7 +10,6 @@ const PROTECTED_PATHS = [
   "/submit",
   "/onboarding",
 ];
-
 export const proxy = auth((req) => {
   const { nextUrl, auth: session } = req;
 
