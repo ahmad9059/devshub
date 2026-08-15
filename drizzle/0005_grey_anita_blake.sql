@@ -1,0 +1,3 @@
+CREATE INDEX "community_fts_idx" ON "devshub_community" USING gin (to_tsvector('english', coalesce("name", '') || ' ' || coalesce("description", '') || ' ' || "slug"));--> statement-breakpoint
+CREATE INDEX "post_fts_idx" ON "devshub_post" USING gin (to_tsvector('english', coalesce("title", '') || ' ' || coalesce("body", '')));--> statement-breakpoint
+CREATE INDEX "user_username_fts_idx" ON "devshub_user" USING gin (to_tsvector('english', coalesce("username", '')));

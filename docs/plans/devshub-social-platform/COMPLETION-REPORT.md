@@ -1,10 +1,10 @@
 # Completion Report — DevsHub Social Platform
 
-> Status: Phases 1–7 completed. Remaining phases pending.
+> Status: Phases 1–8 completed. Remaining phases pending.
 
 ## Summary
 
-Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials, Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile). Phase 2 delivered the complete domain schema (communities, memberships, posts, comments, polymorphic votes) with Drizzle relations, migrations, and an idempotent seed script. Phase 3 delivered user profiles (username/bio/avatar, profile pages, settings, onboarding). Phase 4 delivered communities (create/join/leave/update/list with the `d/` prefix). Phase 5 delivered the three-column layout shell, posts router, home/community feeds with Hot/New/Top sorting and cursor-based infinite scroll, markdown rendering, and the post detail page at `/post/[slug]` with author-only edit/delete. Phase 6 delivered threaded comments (router, recursive tree, inline inputs, sorting, collapsible threads, soft-delete "[deleted]", markdown). Phase 7 delivered voting & ranking: a vote router (cast with add/toggle/change semantics), optimistic vote buttons on posts and comments with highlight states, the Reddit hot ranking algorithm, and `myVote` state batched into feeds and detail views.
+Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials, Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile). Phase 2 delivered the complete domain schema (communities, memberships, posts, comments, polymorphic votes) with Drizzle relations, migrations, and an idempotent seed script. Phase 3 delivered user profiles (username/bio/avatar, profile pages, settings, onboarding). Phase 4 delivered communities (create/join/leave/update/list with the `d/` prefix). Phase 5 delivered the three-column layout shell, posts router, home/community feeds with Hot/New/Top sorting and cursor-based infinite scroll, markdown rendering, and the post detail page at `/post/[slug]` with author-only edit/delete. Phase 6 delivered threaded comments (router, recursive tree, inline inputs, sorting, collapsible threads, soft-delete "[deleted]", markdown). Phase 7 delivered voting & ranking (vote router with add/toggle/change semantics, optimistic vote buttons, Reddit hot ranking, `myVote` state). Phase 8 delivered search & discovery: GIN full-text indexes, a search router (posts/communities/users/trending), a search bar in the layout, a `/search` results page with Posts/Communities/Users tabs, an `/explore` page, and a trending-communities widget.
 
 ## Phases Completed
 
@@ -15,13 +15,13 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - [x] Phase 5: Posts & Feed
 - [x] Phase 6: Comments & Replies
 - [x] Phase 7: Voting & Ranking
-- [ ] Phase 8: Search & Discovery
+- [x] Phase 8: Search & Discovery
 - [ ] Phase 9: Moderation & Safety
 - [ ] Phase 10: Production Hardening
 
 ## Agents / Developers Involved
 
-- opencode (deepseek-v4-flash) — implemented Phases 1, 2, 3, 4, 5, 6, and 7
+- opencode (deepseek-v4-flash) — implemented Phases 1, 2, 3, 4, 5, 6, 7, and 8
 
 ## Files Changed
 
@@ -118,7 +118,15 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - `src/app/post/[slug]/page.tsx` — post `VoteButton` in detail view
 
 ### Phase 8 — Search & Discovery
-<!-- files -->
+- `src/server/db/schema.ts` — GIN full-text indexes on posts, communities, users
+- `drizzle/0005_grey_anita_blake.sql` — new, GIN FTS index migration
+- `src/server/api/routers/search.ts` — new, search router (posts FTS + ILIKE fallback, communities/users ILIKE, trending)
+- `src/server/api/root.ts` — registered `search` router
+- `src/components/search-bar.tsx` — new, search input (desktop + mobile)
+- `src/app/search/page.tsx` + `search-results.tsx` — new, search results with Posts/Communities/Users tabs
+- `src/app/explore/page.tsx` — new, trending communities + popular posts
+- `src/components/trending-widget.tsx` — new, right-sidebar trending widget
+- `src/components/layout/app-shell.tsx` — added search bar, trending widget, and Explore nav
 
 ### Phase 9 — Moderation & Safety
 <!-- files -->
@@ -131,7 +139,7 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - [x] `pnpm check` passes
 - [x] `pnpm build` passes
 - [ ] `pnpm format:check` passes (docs + lockfile formatting pending; source is clean)
-- [x] Phase 1–7 E2E flows pass (see QA-REPORT.md)
+- [x] Phase 1–8 E2E flows pass (see QA-REPORT.md)
 - [ ] Lighthouse scores meet thresholds (deferred to Phase 10)
 - [ ] Production deployment successful (deferred to Phase 10)
 
@@ -140,10 +148,10 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - OAuth (Google/GitHub) providers configured with real credentials but not E2E-tested in a browser.
 - Image-post creation uses the shared S3 pipeline (verified via avatar upload in Phase 3) but wasn't re-tested via UI.
 - Community deletion UI not implemented (deferred to Phase 9).
-- Vote fuzzing and karma/reputation deferred (out of scope per plan).
+- Search autocomplete/typeahead, filters, and saved searches deferred (out of scope per plan).
 - Auth.js v5 Credentials provider forced JWT session strategy (documented deviation from plan).
-- No search GIN indexes yet (Phase 8); no moderation tables yet (Phase 9).
+- No moderation tables yet (Phase 9).
 
 ## Next Steps
 
-- Phase 8: Search & Discovery (full-text search for posts/communities/users, explore page).
+- Phase 9: Moderation & Safety (moderator roles, content reporting, delete own content, rate limiting).

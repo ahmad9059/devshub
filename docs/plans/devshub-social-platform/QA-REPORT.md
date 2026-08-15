@@ -1,6 +1,6 @@
 # QA Report — DevsHub Social Platform
 
-> Status: Phases 1–7 completed and verified. Remaining phases pending.
+> Status: Phases 1–8 completed and verified. Remaining phases pending.
 
 ## What Was Reviewed
 
@@ -11,6 +11,7 @@
 - [x] Phase 5: Posts & Feed
 - [x] Phase 6: Comments & Replies
 - [x] Phase 7: Voting & Ranking
+- [x] Phase 8: Search & Discovery
 - [ ] Phase 2: Database Schema
 - [ ] Phase 3: User Profiles
 - [ ] Phase 4: Communities
@@ -29,6 +30,7 @@
 - Phase 5 added the three-column layout shell, post creation, home/community feeds with sorting + infinite scroll, markdown rendering, and the post detail page with edit/delete.
 - Phase 6 added threaded comments: comment router (create/list/update/delete), recursive comment tree with indentation, comment input for top-level/replies, comment sorting (best/new/top), collapsible threads, soft-delete "[deleted]", and markdown in comments.
 - Phase 7 added voting & ranking: vote router (cast with toggle/change semantics), optimistic vote buttons on posts and comments, Reddit hot ranking, `myVote` state in feeds.
+- Phase 8 added search & discovery: GIN full-text indexes, search router (posts/communities/users/trending), search bar, `/search` results page with tabs, `/explore` page, and a trending widget.
 
 ## Files Changed
 
@@ -38,6 +40,7 @@
 - Phase 5: `src/server/api/routers/post.ts` (new), `src/server/api/root.ts` (register), `src/components/layout/app-shell.tsx` (new, three-column), `src/components/post-card.tsx` (new), `src/components/post-feed.tsx` (new, infinite scroll + sort tabs), `src/components/markdown.tsx` (new), `src/components/post-actions.tsx` (new), `src/app/page.tsx` (home feed), `src/app/submit/page.tsx` + `submit-form.tsx` (new), `src/app/community/[slug]/page.tsx` (feed), `src/app/post/[slug]/page.tsx` (new, detail) + `edit/page.tsx` + `edit-post-form.tsx`, `package.json` (react-markdown, remark-gfm, rehype-sanitize).
 - Phase 6: `src/server/api/routers/comment.ts` (new), `src/server/api/root.ts` (register), `src/components/comment-input.tsx` (new), `src/components/comment-card.tsx` (new), `src/components/comment-tree.tsx` (new), `src/app/post/[slug]/page.tsx` (comment section), `src/server/db/seed.ts` (corrected commentCount values).
 - Phase 7: `src/server/api/routers/vote.ts` (new), `src/server/api/root.ts` (register), `src/components/vote-button.tsx` (new), `src/components/post-card.tsx` (vote button + myVote), `src/components/comment-card.tsx` (vote button + myVote), `src/components/post-feed.tsx` (isLoggedIn prop), `src/server/api/routers/post.ts` (myVote + hot ranking), `src/server/api/routers/comment.ts` (myVote), `src/app/page.tsx` + `src/app/community/[slug]/page.tsx` (isLoggedIn), `src/app/post/[slug]/page.tsx` (post vote button).
+- Phase 8: `src/server/db/schema.ts` (GIN FTS indexes), `drizzle/0005_grey_anita_blake.sql`, `src/server/api/routers/search.ts` (new), `src/server/api/root.ts` (register), `src/components/search-bar.tsx` (new), `src/app/search/page.tsx` + `search-results.tsx` (new), `src/app/explore/page.tsx` (new), `src/components/trending-widget.tsx` (new), `src/components/layout/app-shell.tsx` (search bar + trending widget + Explore nav).
 
 ## Migrations Added
 
@@ -105,11 +108,11 @@
 - [x] Vote on comment works (score +1, arrow highlights)
 
 ### Search Flows
-- [ ] Search posts works
-- [ ] Search communities works
-- [ ] Search users works
-- [ ] Explore page renders
-- [ ] Trending widget renders
+- [x] Search posts works (FTS on title + body + ILIKE fallback)
+- [x] Search communities works (ILIKE on name/slug/description)
+- [x] Search users works (ILIKE on username/name)
+- [x] Explore page renders (trending communities + popular posts)
+- [x] Trending widget renders (right sidebar, View all → /explore)
 
 ### Moderation Flows
 - [ ] Report post works
@@ -226,6 +229,20 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - [x] Unauthenticated vote click → `signIn()` redirect (via `isLoggedIn` prop)
 - [x] Seed re-run after testing to restore a clean, consistent state
 
+## Search QA (Phase 8)
+
+- [x] GIN FTS indexes applied: `post_fts_idx`, `community_fts_idx`, `user_username_fts_idx` (verified via Neon)
+- [x] `search.posts` — `to_tsvector('english')` match on title+body with `ILIKE` fallback; body-word queries work (e.g. "useOptimistic" → React 19 post, "redux" → Redux post)
+- [x] `search.communities` — `ILIKE` on name/slug/description
+- [x] `search.users` — `ILIKE` on username/name
+- [x] `search.trending` — top communities by member count + top posts by score in last 24h (with `myVote: null`)
+- [x] Search bar in header (desktop + mobile), prefilled from `?q`
+- [x] `/search?q=...` with Posts/Communities/Users tabs + result counts; empty state "No results found"
+- [x] `/explore` — Trending Communities + Popular Posts sections
+- [x] TrendingWidget in right sidebar with "View all" → /explore
+- [x] Public — no login required (verified without cookie)
+- [x] All search procedures use `plainto_tsquery` + GIN indexes for performance
+
 ## Architecture Decisions (Phase 1)
 
 - **Session strategy: JWT, not database.** Auth.js v5 beta is incompatible with the Credentials provider when using `session.strategy: "database"` — the sign-in returns a JWE cookie but no DB session row is created and `auth()` resolves to `null`. Switched to `session: { strategy: "jwt" }` with `jwt`/`session` callbacks exposing `session.user.id`. The Drizzle adapter is still installed and used for OAuth user/account storage.
@@ -238,7 +255,7 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - `AUTH_URL` currently set to `http://localhost:3001` in `.env` (project uses port 3001 locally).
 - Image-post creation flow shares the verified S3 pipeline but wasn't re-tested via UI this phase.
 - Community deletion UI not yet implemented (deferred to Phase 9 moderation).
-- Vote fuzzing and karma/reputation deferred (out of scope per plan).
+- Search autocomplete/typeahead, filters, and saved searches deferred (out of scope per plan).
 
 ## P0/P1/P2 Status
 | Severity | Count | Resolved |
@@ -247,7 +264,7 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 | P1 | 4 | 2 |
 | P2 | 4 | 0 |
 
-Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved. Phase 2 owned P0 issues 7, 8 and P2 issue 15 (Neon HTTP: no pooling by design, no transactions → `db.batch()`). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model. Phase 5 delivered issue 6 (three-column layout shell). Phase 6 delivered threaded comments. Phase 7 delivered voting & ranking (no new issue-register rows). P1 issue 9 (rate limiting) remains for Phase 9.
+Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved. Phase 2 owned P0 issues 7, 8 and P2 issue 15 (Neon HTTP: no pooling by design, no transactions → `db.batch()`). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model. Phase 5 delivered issue 6 (three-column layout shell). Phase 6 delivered threaded comments. Phase 7 delivered voting & ranking. Phase 8 delivered issue 13 (no search functionality) — resolved: FTS + GIN indexes, search router, search/explore pages, trending widget. P1 issue 9 (rate limiting) remains for Phase 9.
 
 ## Recommendations Before Production
 

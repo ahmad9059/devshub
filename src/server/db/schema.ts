@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   foreignKey,
   index,
@@ -41,6 +42,10 @@ export const users = createTable(
   (table) => [
     index("user_email_idx").on(table.email),
     index("user_username_idx").on(table.username),
+    index("user_username_fts_idx").using(
+      "gin",
+      sql`to_tsvector('english', coalesce(${table.username}, ''))`,
+    ),
   ],
 );
 
@@ -119,6 +124,10 @@ export const communities = createTable(
   (table) => [
     index("community_owner_id_idx").on(table.ownerId),
     index("community_created_at_idx").on(table.createdAt),
+    index("community_fts_idx").using(
+      "gin",
+      sql`to_tsvector('english', coalesce(${table.name}, '') || ' ' || coalesce(${table.description}, '') || ' ' || ${table.slug})`,
+    ),
   ],
 );
 
@@ -175,6 +184,10 @@ export const posts = createTable(
     index("post_score_idx").on(table.score),
     index("post_created_at_idx").on(table.createdAt),
     index("post_slug_idx").on(table.slug),
+    index("post_fts_idx").using(
+      "gin",
+      sql`to_tsvector('english', coalesce(${table.title}, '') || ' ' || coalesce(${table.body}, ''))`,
+    ),
   ],
 );
 

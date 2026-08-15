@@ -90,21 +90,21 @@ Enable users to search for posts, communities, and users by keyword. Add an expl
 
 ## 6. Acceptance Criteria / QA Checklist
 
-- [ ] Search bar is visible in the layout
-- [ ] Searching for a keyword returns matching posts, communities, and users
-- [ ] Search results tabs (Posts, Communities, Users) work independently
-- [ ] Empty search shows "No results found" message
-- [ ] Explore page shows trending communities and popular posts
-- [ ] Trending widget in right sidebar shows top communities
-- [ ] Search works without login (public)
-- [ ] Full-text search indexes are applied (verify via Neon)
-- [ ] `pnpm check` and `pnpm build` pass
-- [ ] All UI uses shadcn semantic tokens
+- [x] Search bar is visible in the layout
+- [x] Searching for a keyword returns matching posts, communities, and users
+- [x] Search results tabs (Posts, Communities, Users) work independently
+- [x] Empty search shows "No results found" message
+- [x] Explore page shows trending communities and popular posts
+- [x] Trending widget in right sidebar shows top communities
+- [x] Search works without login (public)
+- [x] Full-text search indexes are applied (verify via Neon)
+- [x] `pnpm check` and `pnpm build` pass
+- [x] All UI uses shadcn semantic tokens
 
 ## 7. Open Questions
 
-1. Use PostgreSQL full-text search (`to_tsvector`) or simple `ILIKE`? **Recommendation: `ILIKE` for communities and users (short text), `to_tsvector` for posts (longer text).**
-2. Should search support fuzzy matching? **Recommendation: no for launch.** Exact substring + FTS is sufficient.
+1. Use PostgreSQL full-text search (`to_tsvector`) or simple `ILIKE`? **Resolved: `to_tsvector` + GIN for posts (title + body), `ILIKE` for communities and users** (short text), per plan recommendation. Posts also fall back to `ILIKE` for substring matches.
+2. Should search support fuzzy matching? **Resolved: no for launch.** Exact substring + FTS is sufficient.
 
 ## 8. Skills to Load
 

@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Code2Icon, HomeIcon, PlusIcon, TrendingUpIcon } from "lucide-react";
 
 import { auth } from "~/auth";
 import { CommunityList } from "~/components/community-list";
+import { SearchBar } from "~/components/search-bar";
 import { ThemeToggle } from "~/components/theme-toggle";
+import { TrendingWidget } from "~/components/trending-widget";
 import { UserAvatar } from "~/components/user-avatar";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
@@ -27,18 +30,22 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: "/", label: "Home", icon: HomeIcon },
+    { href: "/explore", label: "Explore", icon: TrendingUpIcon },
     { href: "/create-community", label: "Create community", icon: PlusIcon },
   ];
 
   return (
     <div className="bg-background min-h-screen">
       <header className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-40 border-b backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
             <Code2Icon className="size-4" aria-hidden="true" />
             <span className="text-sm font-semibold">DevsHub</span>
           </Link>
-          <div className="flex items-center gap-2">
+          <Suspense fallback={null}>
+            <SearchBar className="hidden w-full max-w-xs flex-1 md:block" />
+          </Suspense>
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             {user ? (
               <Button
                 variant="default"
@@ -59,6 +66,11 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             )}
             <ThemeToggle />
           </div>
+        </div>
+        <div className="border-border mx-auto flex max-w-6xl px-4 pb-2 sm:px-6 md:hidden">
+          <Suspense fallback={null}>
+            <SearchBar className="w-full" />
+          </Suspense>
         </div>
       </header>
 
@@ -113,6 +125,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
           )}
+
+          <TrendingWidget />
 
           <div className="flex flex-col gap-3 rounded-lg border p-4">
             <div className="flex items-center gap-2">
