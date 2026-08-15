@@ -1,10 +1,23 @@
 # Completion Report — DevsHub Social Platform
 
-> Status: Phases 1–9 completed. Phase 10 remaining.
+> Status: All 10 phases completed.
 
 ## Summary
 
-Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials, Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile). Phase 2 delivered the complete domain schema (communities, memberships, posts, comments, polymorphic votes) with Drizzle relations, migrations, and an idempotent seed script. Phase 3 delivered user profiles. Phase 4 delivered communities (with the `d/` prefix). Phase 5 delivered the three-column layout shell, posts router, home/community feeds, markdown rendering, and the post detail page. Phase 6 delivered threaded comments. Phase 7 delivered voting & ranking (vote router, optimistic buttons, Reddit hot ranking, `myVote`). Phase 8 delivered search & discovery (GIN FTS indexes, search router, search bar, `/search` + `/explore` pages, trending widget). Phase 9 delivered moderation & safety: a reports table + router, moderator actions (modDelete on posts/comments, promote/demote/removeMember), Upstash Redis rate limiting on write endpoints, a report dialog, a community moderation queue page, and a content policy page. All P0 and P1 issue-register rows are now resolved.
+DevsHub is a complete Reddit-style social platform for developers, built on the T3 stack (Next.js 16 App Router, TypeScript, tRPC v11, Drizzle ORM, Neon Postgres, AWS S3, shadcn/ui `base-nova` with Tailwind v4). All 10 planned phases were delivered:
+
+- **Phase 1** — Auth foundation: Auth.js v5 (Google/GitHub/Credentials), Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile.
+- **Phase 2** — Domain schema: communities, memberships, posts, comments (self-referencing nesting), polymorphic votes; Drizzle relations; migrations; idempotent seed.
+- **Phase 3** — User profiles: username/bio/avatar, profile pages, settings, onboarding flow.
+- **Phase 4** — Communities: create/join/leave/update/list with the `d/` prefix, owner/moderator settings.
+- **Phase 5** — Posts & feed: three-column layout shell, posts router, home/community feeds (Hot/New/Top + infinite scroll), markdown rendering, post detail at `/post/[slug]`, author edit/delete.
+- **Phase 6** — Threaded comments: recursive tree, inline inputs, sorting, collapsible threads, depth cap 5, soft-delete "[deleted]".
+- **Phase 7** — Voting & ranking: vote router (add/toggle/change), optimistic buttons, Reddit hot ranking, `myVote` state.
+- **Phase 8** — Search & discovery: GIN full-text indexes, search router, search bar, `/search` + `/explore`, trending widget.
+- **Phase 9** — Moderation & safety: reports, moderator actions, Upstash Redis rate limiting, report dialog, moderation queue, content policy.
+- **Phase 10** — Production hardening: SEO metadata, sitemap, robots, error boundary, custom 404, security headers.
+
+All P0 and P1 issue-register rows are resolved. Two documented deviations: JWT session strategy (Auth.js v5 Credentials incompatibility with database sessions) and `d/business` community prefix instead of `r/`. Notable implementation notes: Neon HTTP has no transactions (uses `db.batch()`), and segment `loading.tsx` was removed to preserve correct HTTP 404 status codes.
 
 ## Phases Completed
 
@@ -17,11 +30,11 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - [x] Phase 7: Voting & Ranking
 - [x] Phase 8: Search & Discovery
 - [x] Phase 9: Moderation & Safety
-- [ ] Phase 10: Production Hardening
+- [x] Phase 10: Production Hardening
 
 ## Agents / Developers Involved
 
-- opencode (deepseek-v4-flash) — implemented Phases 1, 2, 3, 4, 5, 6, 7, 8, and 9
+- opencode (deepseek-v4-flash) — implemented all 10 phases
 
 ## Files Changed
 
@@ -149,16 +162,24 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - `package.json` — added `@upstash/redis`, `@upstash/ratelimit`
 
 ### Phase 10 — Production Hardening
-<!-- files -->
+- `src/app/layout.tsx` — OpenGraph/Twitter/canonical metadata, title template, viewport theme-color
+- `src/app/community/[slug]/page.tsx`, `src/app/post/[slug]/page.tsx`, `src/app/user/[username]/page.tsx` — rich `generateMetadata` (real titles/descriptions, OG types)
+- `src/app/design-system/page.tsx`, `src/app/search/page.tsx`, `src/app/explore/page.tsx`, `src/app/policy/page.tsx`, `src/app/community/[slug]/moderation/page.tsx` — title template fixes
+- `src/app/sitemap.ts` — new, dynamic sitemap (static + communities + posts + users)
+- `src/app/robots.ts` — new, robots.txt
+- `src/app/error.tsx` — new, client error boundary (Try again + Back home)
+- `src/app/not-found.tsx` — new, custom 404 page
+- `next.config.js` — security headers (X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS)
+- `src/app/loading.tsx`, `src/app/community/[slug]/loading.tsx`, `src/app/post/[slug]/loading.tsx` — added then removed (see note)
 
 ## Validations
 
 - [x] `pnpm check` passes
 - [x] `pnpm build` passes
 - [ ] `pnpm format:check` passes (docs + lockfile formatting pending; source is clean)
-- [x] Phase 1–9 E2E flows pass (see QA-REPORT.md)
-- [ ] Lighthouse scores meet thresholds (deferred to Phase 10)
-- [ ] Production deployment successful (deferred to Phase 10)
+- [x] Phase 1–10 E2E flows pass (see QA-REPORT.md)
+- [ ] Lighthouse scores meet thresholds (not automated locally)
+- [ ] Production deployment successful (requires Vercel project + env config)
 
 ## Known Gaps
 
@@ -168,7 +189,11 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - Global admin dashboard, automated content filtering, bans, appeals, and audit log deferred (out of scope per plan).
 - Auth.js v5 Credentials provider forced JWT session strategy (documented deviation from plan).
 - Neon HTTP driver has no transaction support — `db.batch()` used for atomic multi-statement writes.
+- P2 items remain (search filters/autocomplete, Lighthouse CI, Neon pooling).
 
-## Next Steps
+## Next Steps (post-launch)
 
-- Phase 10: Production Hardening (SEO metadata, sitemap, robots.txt, error boundaries, 404/500 pages, performance audit, deployment config, final E2E QA).
+- Deploy to Vercel with production env vars; set OAuth redirect URLs to the production domain.
+- Run Lighthouse on the deployed URL; optimize images and prefetching if <90.
+- Add community-delete action for owners.
+- Consider Sentry/monitoring, karma/reputation, vote fuzzing, and search typeahead as follow-ups.
