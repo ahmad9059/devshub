@@ -1,17 +1,17 @@
 # Completion Report — DevsHub Social Platform
 
-> Status: Phases 1–3 completed. Remaining phases pending.
+> Status: Phases 1–4 completed. Remaining phases pending.
 
 ## Summary
 
-Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials, Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile). Phase 2 delivered the complete domain schema — communities, community memberships, posts, comments (with self-referencing nesting), and polymorphic votes — plus Drizzle relations, a verified migration on the Neon dev branch, and an idempotent seed script. Phase 3 delivered user profiles: `username`/`bio`/`avatarObjectKey` columns, a profile tRPC router (getByUsername/getMe/updateProfile/checkUsername), a public profile page with posts/comments tabs, a settings page with avatar upload via the S3 presigned pipeline, and a username onboarding flow with a root-layout guard. All Phase 3 flows verified end-to-end with real Turnstile + S3 credentials, including the avatar upload/download cycle and the 30-day username rename limit.
+Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials, Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile). Phase 2 delivered the complete domain schema — communities, community memberships, posts, comments, and polymorphic votes — plus Drizzle relations, migrations, and an idempotent seed script. Phase 3 delivered user profiles: username/bio/avatar, a profile tRPC router, a public profile page, settings with avatar upload, and username onboarding. Phase 4 delivered communities: a community tRPC router (create/getBySlug/list/listMine/join/leave/update/checkSlug), the create-community page, the public community page with posts feed, optimistic join/leave, a community list component, and owner/moderator-only settings. Community URLs use the `d/` prefix (e.g. `d/reactjs`). A key finding: the Neon HTTP driver does not support transactions, so multi-statement writes use `db.batch()`.
 
 ## Phases Completed
 
 - [x] Phase 1: Auth Foundation
 - [x] Phase 2: Database Schema
 - [x] Phase 3: User Profiles
-- [ ] Phase 4: Communities
+- [x] Phase 4: Communities
 - [ ] Phase 5: Posts & Feed
 - [ ] Phase 6: Comments & Replies
 - [ ] Phase 7: Voting & Ranking
@@ -21,7 +21,7 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 
 ## Agents / Developers Involved
 
-- opencode (deepseek-v4-flash) — implemented Phases 1, 2, and 3
+- opencode (deepseek-v4-flash) — implemented Phases 1, 2, 3, and 4
 
 ## Files Changed
 
@@ -70,7 +70,16 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - `src/server/db/seed.ts` — seed users now set usernames/bios
 
 ### Phase 4 — Communities
-<!-- files -->
+- `src/server/api/routers/community.ts` — new, community router (create/getBySlug/list/listMine/join/leave/update/checkSlug); uses `db.batch()` (Neon HTTP has no transactions); 50-community limit
+- `src/server/api/root.ts` — registered `community` router
+- `src/app/create-community/page.tsx` — new, create community with slug availability + icon upload
+- `src/app/community/[slug]/page.tsx` — new, public community page (header, members/posts, posts feed, join/leave)
+- `src/app/community/[slug]/settings/page.tsx` — new, owner/moderator settings (name/description/icon)
+- `src/components/join-button.tsx` — new, optimistic Join/Joined/Confirm-leave + signed-out variant
+- `src/components/community-list.tsx` — new, top communities by member count
+- `src/components/image-upload-button.tsx` — new, reusable S3 image upload button
+- `src/proxy.ts` — protected `/create-community`
+- UI: community prefix is `d/` (e.g. `d/reactjs`) across community/profile/list pages
 
 ### Phase 5 — Posts & Feed
 <!-- files -->
@@ -95,19 +104,20 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - [x] `pnpm check` passes
 - [x] `pnpm build` passes
 - [ ] `pnpm format:check` passes (docs + lockfile formatting pending; source is clean)
-- [x] Phase 1–3 E2E flows pass (see QA-REPORT.md)
+- [x] Phase 1–4 E2E flows pass (see QA-REPORT.md)
 - [ ] Lighthouse scores meet thresholds (deferred to Phase 10)
 - [ ] Production deployment successful (deferred to Phase 10)
 
 ## Known Gaps
 
 - OAuth (Google/GitHub) providers configured with real credentials but not E2E-tested in a browser.
-- Post detail pages (`/post/...`) don't exist yet — profile page links to them (Phase 5).
+- Post detail pages (`/post/...`) don't exist yet — profile + community pages link to them (Phase 5).
 - No logout button yet (will arrive with the app shell in Phase 5).
+- Community deletion UI not implemented (deferred to Phase 9).
+- Community `postCount` not yet maintained (no post-creation endpoints until Phase 5).
 - Auth.js v5 Credentials provider forced JWT session strategy (documented deviation from plan).
-- Denormalized counters are schema-only until write endpoints exist (Phase 5+).
 - No search GIN indexes yet (Phase 8); no moderation tables yet (Phase 9).
 
 ## Next Steps
 
-- Phase 4: Communities (create community, community page, join/leave, listing).
+- Phase 5: Posts & Feed (three-column layout shell, create post, home feed, community feed, post detail page at `/post/[slug]`).

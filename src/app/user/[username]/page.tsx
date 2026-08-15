@@ -93,7 +93,7 @@ export default async function UserProfilePage({
             {user.memberships.map((membership) => (
               <Badge key={membership.communityId} variant="secondary">
                 <Link href={`/community/${membership.community.slug}`}>
-                  r/{membership.community.slug}
+                  d/{membership.community.slug}
                 </Link>
               </Badge>
             ))}
@@ -125,7 +125,7 @@ export default async function UserProfilePage({
                         href={`/community/${post.community.slug}`}
                         className="text-muted-foreground hover:text-foreground mr-2 text-xs"
                       >
-                        r/{post.community.slug}
+                        d/{post.community.slug}
                       </Link>
                       <Link
                         href={`/post/${post.slug}`}
@@ -168,7 +168,7 @@ export default async function UserProfilePage({
                         <Code2Icon className="size-3" aria-hidden="true" />
                         {comment.post.title}
                       </Link>
-                      <span>in r/{comment.post.community.slug}</span>
+                      <span>in d/{comment.post.community.slug}</span>
                       <span>{formatDate(comment.createdAt)}</span>
                     </div>
                   </CardContent>

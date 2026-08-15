@@ -100,20 +100,21 @@ Allow any authenticated user to create a community. Communities have a slug, nam
 
 ## 6. Acceptance Criteria / QA Checklist
 
-- [ ] Authenticated user can create a community with valid slug
-- [ ] Slug availability check works in real-time
-- [ ] Community page renders for any visitor at `/community/[slug]`
-- [ ] Join button works — user becomes member, member count increments
-- [ ] Leave button works — user removed, member count decrements
-- [ ] Non-existent community slug shows 404
-- [ ] Community settings only accessible to owner/moderator
-- [ ] `pnpm check` and `pnpm build` pass
-- [ ] All UI uses shadcn semantic tokens
+- [x] Authenticated user can create a community with valid slug
+- [x] Slug availability check works in real-time
+- [x] Community page renders for any visitor at `/community/[slug]`
+- [x] Join button works — user becomes member, member count increments
+- [x] Leave button works — user removed, member count decrements
+- [x] Non-existent community slug shows 404
+- [x] Community settings only accessible to owner/moderator
+- [x] `pnpm check` and `pnpm build` pass
+- [x] All UI uses shadcn semantic tokens
 
 ## 7. Open Questions
 
-1. Should community deletion be allowed? **Recommendation: yes, owner-only, with confirmation. Posts are cascade-deleted.**
-2. Should there be a limit on communities per user? **Recommendation: 50 communities per user for launch.**
+1. Should community deletion be allowed? **Deferred** — settings page covers edit/icon; deletion not implemented (posts cascade-delete is schema-ready, but deletion UI deferred to Phase 9 moderation).
+2. Should there be a limit on communities per user? **Resolved: 50 communities per user** — enforced server-side via `communityMembers` count check before create.
+3. **Community prefix is `d/`** (e.g. `d/reactjs`), not `r/`, to match the DevsHub brand.
 
 ## 8. Skills to Load
 

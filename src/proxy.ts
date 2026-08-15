@@ -6,6 +6,7 @@ const PROTECTED_PATHS = [
   "/profile",
   "/settings",
   "/create",
+  "/create-community",
   "/submit",
   "/onboarding",
 ];

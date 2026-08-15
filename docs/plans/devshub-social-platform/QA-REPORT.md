@@ -1,12 +1,13 @@
 # QA Report — DevsHub Social Platform
 
-> Status: Phases 1–3 completed and verified. Remaining phases pending.
+> Status: Phases 1–4 completed and verified. Remaining phases pending.
 
 ## What Was Reviewed
 
 - [x] Phase 1: Auth Foundation
 - [x] Phase 2: Database Schema
 - [x] Phase 3: User Profiles
+- [x] Phase 4: Communities
 - [ ] Phase 2: Database Schema
 - [ ] Phase 3: User Profiles
 - [ ] Phase 4: Communities
@@ -21,11 +22,13 @@
 
 - Phase 2 added the full domain schema and seed data (see "Migrations Added" below).
 - Phase 3 added user profile fields, profile pages, avatar upload, and username onboarding.
+- Phase 4 added community creation, community pages, join/leave, community list, and owner/moderator settings.
 
 ## Files Changed
 
 - Phase 2: `src/server/db/schema.ts`, `src/server/db/relations.ts` (new), `src/server/db/seed.ts` (new), `src/server/db/index.ts`, `drizzle/0001_safe_thundra.sql`, `package.json` (`db:seed`, `tsx` dev dep).
-- Phase 3: `src/server/db/schema.ts` (username/bio/avatarObjectKey/usernameUpdatedAt), `drizzle/0002_sad_green_goblin.sql` + `drizzle/0003_needy_swordsman.sql`, `src/server/api/routers/profile.ts` (new), `src/server/api/routers/storage.ts` (getSignedDownloadUrl), `src/server/s3.ts` (getSignedDownloadUrl helper, WHEN_REQUIRED checksum), `src/components/user-avatar.tsx` (new), `src/components/avatar-uploader.tsx` (new), `src/components/onboarding-guard.tsx` (new), `src/app/settings/page.tsx` (new), `src/app/onboarding/page.tsx` (new), `src/app/user/[username]/page.tsx` (new), `src/proxy.ts` (x-pathname header + onboarding protection), `src/app/layout.tsx` (OnboardingGuard).
+- Phase 3: `src/server/db/schema.ts` (username/bio/avatarObjectKey/usernameUpdatedAt + post slug), `drizzle/0002_sad_green_goblin.sql` + `0003_needy_swordsman.sql` + `0004_tan_spitfire.sql`, `src/server/api/routers/profile.ts` (new), `src/server/api/routers/storage.ts` (getSignedDownloadUrl), `src/server/s3.ts`, `src/components/user-avatar.tsx`, `avatar-uploader.tsx`, `onboarding-guard.tsx`, `src/app/settings/page.tsx`, `onboarding/page.tsx`, `user/[username]/page.tsx`, `src/proxy.ts` (x-pathname + onboarding), `src/app/layout.tsx`.
+- Phase 4: `src/server/api/routers/community.ts` (new), `src/server/api/root.ts` (register), `src/app/create-community/page.tsx` (new), `src/app/community/[slug]/page.tsx` (new), `src/app/community/[slug]/settings/page.tsx` (new), `src/components/join-button.tsx` (new), `src/components/community-list.tsx` (new), `src/components/image-upload-button.tsx` (new), `src/proxy.ts` (protect /create-community), `d/` prefix across community UI.
 
 ## Migrations Added
 
@@ -61,10 +64,10 @@
 - [x] Profile edit works (username with availability, bio, avatar via /settings)
 
 ### Community Flows
-- [ ] Create community works
-- [ ] Community page renders
-- [ ] Join/leave works
-- [ ] Community settings (owner) works
+- [x] Create community works (slug availability, name/description/icon, redirect to community page)
+- [x] Community page renders (public: header, members/posts count, posts feed, `d/` prefix)
+- [x] Join/leave works (optimistic Join/Joined/Confirm-leave, member count increments/decrements)
+- [x] Community settings (owner/moderator) works — non-owner blocked with explanatory alert
 
 ### Post Flows
 - [ ] Create text post works
@@ -156,6 +159,22 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - [x] Duplicate-username check uses `and(eq, ne)` (fixed a bug where `&&` didn't combine SQL conditions)
 - [x] Post URLs use SEO-friendly title slugs, not random IDs — `posts.slug` (unique) added; profile page links `/post/${slug}` (Phase 5 will render `/post/[slug]`)
 
+## Community QA (Phase 4)
+
+- [x] `community.create` — validates slug format + uniqueness, enforces 50-community limit, adds creator as owner (batched inserts with client-generated UUID)
+- [x] `community.checkSlug` real-time availability
+- [x] `community.getBySlug` public, with owner + posts (slug links)
+- [x] `community.list` public, sorted by member count
+- [x] `community.listMine` for authenticated user
+- [x] `community.join`/`leave` — atomic member-count increments via `db.batch` (neon-http has no transactions); owner cannot leave
+- [x] `community.update` — owner/moderator only, non-owner gets FORBIDDEN
+- [x] `/create-community` protected (proxy redirects to `/login`)
+- [x] `/community/[slug]` public; non-existent slug → 404
+- [x] `/community/[slug]/settings` — non-owner blocked in UI
+- [x] Join/leave UI: Join → Joined → Confirm leave? → Join (member count reflects state)
+- [x] Community prefix is `d/` (e.g. `d/reactjs`), matching DevsHub brand
+- [x] **Neon-http driver has NO transaction support** (`.transaction()` throws at runtime) — switched to `db.batch()` for multi-statement atomic ops
+
 ## Architecture Decisions (Phase 1)
 
 - **Session strategy: JWT, not database.** Auth.js v5 beta is incompatible with the Credentials provider when using `session.strategy: "database"` — the sign-in returns a JWE cookie but no DB session row is created and `auth()` resolves to `null`. Switched to `session: { strategy: "jwt" }` with `jwt`/`session` callbacks exposing `session.user.id`. The Drizzle adapter is still installed and used for OAuth user/account storage.
@@ -166,8 +185,9 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 
 - OAuth (Google/GitHub) flows are configured with real credentials but not fully E2E-tested in a browser (would redirect to the provider).
 - `AUTH_URL` currently set to `http://localhost:3001` in `.env` (project uses port 3001 locally).
-- Post detail pages (`/post/...`) don't exist yet — profile page links point to them (Phase 5).
-- Post URLs will use title slugs for SEO (planned Phase 5; slug column added in Phase 3).
+- Post detail pages (`/post/...`) don't exist yet — profile + community pages link to them (Phase 5).
+- Community deletion UI not yet implemented (deferred to Phase 9 moderation).
+- Community `postCount` counter not yet maintained (no post creation endpoints until Phase 5).
 
 ## P0/P1/P2 Status
 | Severity | Count | Resolved |
@@ -176,7 +196,7 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 | P1 | 4 | 2 |
 | P2 | 4 | 0 |
 
-Phase 1 owned P0 issues 1 (no auth), 2 (unprotected storage mutation), 4 (no route protection), 5 (TRPCReactProvider not mounted) and P1 issue 10 (bot protection) — resolved, with real Turnstile keys now verified E2E. Phase 2 owned P0 issues 7 (no post/comment/vote schema), 8 (no community schema) and P2 issue 15 (Neon HTTP driver) — resolved except issue 15 (HTTP driver has no pooling by design, acceptable for serverless). Phase 3 owned issue 3 (profile fields) — resolved: username/bio/avatar + pages. P1 count resolved moved to 2 (issue 5 TRPCReactProvider + issue 10 Turnstile).
+Phase 1 owned P0 issues 1 (no auth), 2 (unprotected storage mutation), 4 (no route protection), 5 (TRPCReactProvider not mounted) and P1 issue 10 (bot protection) — resolved, with real Turnstile keys now verified E2E. Phase 2 owned P0 issues 7 (no post/comment/vote schema), 8 (no community schema) and P2 issue 15 (Neon HTTP driver) — resolved except issue 15 (HTTP driver has no pooling by design; also no transaction support — `db.batch()` used instead). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model (create/join/leave/update/list) on top of the Phase 2 schema. P1 count resolved remains 2 (issue 5 TRPCReactProvider + issue 10 Turnstile); issue 9 (rate limiting) is still Phase 9.
 
 ## Recommendations Before Production
 
