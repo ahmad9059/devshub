@@ -1,6 +1,6 @@
 # QA Report — DevsHub Social Platform
 
-> Status: Phases 1–5 completed and verified. Remaining phases pending.
+> Status: Phases 1–6 completed and verified. Remaining phases pending.
 
 ## What Was Reviewed
 
@@ -9,6 +9,7 @@
 - [x] Phase 3: User Profiles
 - [x] Phase 4: Communities
 - [x] Phase 5: Posts & Feed
+- [x] Phase 6: Comments & Replies
 - [ ] Phase 2: Database Schema
 - [ ] Phase 3: User Profiles
 - [ ] Phase 4: Communities
@@ -25,6 +26,7 @@
 - Phase 3 added user profile fields, profile pages, avatar upload, and username onboarding.
 - Phase 4 added community creation, community pages, join/leave, community list, and owner/moderator settings.
 - Phase 5 added the three-column layout shell, post creation, home/community feeds with sorting + infinite scroll, markdown rendering, and the post detail page with edit/delete.
+- Phase 6 added threaded comments: comment router (create/list/update/delete), recursive comment tree with indentation, comment input for top-level/replies, comment sorting (best/new/top), collapsible threads, soft-delete "[deleted]", and markdown in comments.
 
 ## Files Changed
 
@@ -32,6 +34,7 @@
 - Phase 3: `src/server/db/schema.ts` (username/bio/avatarObjectKey/usernameUpdatedAt + post slug), `drizzle/0002_sad_green_goblin.sql` + `0003_needy_swordsman.sql` + `0004_tan_spitfire.sql`, `src/server/api/routers/profile.ts` (new), `src/server/api/routers/storage.ts` (getSignedDownloadUrl), `src/server/s3.ts`, `src/components/user-avatar.tsx`, `avatar-uploader.tsx`, `onboarding-guard.tsx`, `src/app/settings/page.tsx`, `onboarding/page.tsx`, `user/[username]/page.tsx`, `src/proxy.ts` (x-pathname + onboarding), `src/app/layout.tsx`.
 - Phase 4: `src/server/api/routers/community.ts` (new), `src/server/api/root.ts` (register), `src/app/create-community/page.tsx` (new), `src/app/community/[slug]/page.tsx` (new), `src/app/community/[slug]/settings/page.tsx` (new), `src/components/join-button.tsx` (new), `community-list.tsx` (new), `image-upload-button.tsx` (new), `src/proxy.ts` (protect /create-community), `d/` prefix across community UI.
 - Phase 5: `src/server/api/routers/post.ts` (new), `src/server/api/root.ts` (register), `src/components/layout/app-shell.tsx` (new, three-column), `src/components/post-card.tsx` (new), `src/components/post-feed.tsx` (new, infinite scroll + sort tabs), `src/components/markdown.tsx` (new), `src/components/post-actions.tsx` (new), `src/app/page.tsx` (home feed), `src/app/submit/page.tsx` + `submit-form.tsx` (new), `src/app/community/[slug]/page.tsx` (feed), `src/app/post/[slug]/page.tsx` (new, detail) + `edit/page.tsx` + `edit-post-form.tsx`, `package.json` (react-markdown, remark-gfm, rehype-sanitize).
+- Phase 6: `src/server/api/routers/comment.ts` (new), `src/server/api/root.ts` (register), `src/components/comment-input.tsx` (new), `src/components/comment-card.tsx` (new), `src/components/comment-tree.tsx` (new), `src/app/post/[slug]/page.tsx` (comment section), `src/server/db/seed.ts` (corrected commentCount values).
 
 ## Migrations Added
 
@@ -83,12 +86,12 @@
 - [x] Post edit works (title/body update)
 
 ### Comment Flows
-- [ ] Top-level comment works
-- [ ] Reply (nested) works
-- [ ] Comment tree indentation correct
-- [ ] Comment sorting works
-- [ ] Comment delete shows [deleted]
-- [ ] Comment edit works
+- [x] Top-level comment works (markdown body)
+- [x] Reply (nested) works (inline reply form)
+- [x] Comment tree indentation correct (recursive, guide line)
+- [x] Comment sorting works (Best/New/Top tabs)
+- [x] Comment delete shows [deleted] (author hidden + note)
+- [x] Comment edit works (inline edit + Save)
 
 ### Voting Flows
 - [ ] Upvote post works
@@ -195,6 +198,19 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - [x] Community `Select` shows `d/slug` label (fixed raw-UUID display via `SelectValue` children-as-function)
 - [x] Client pages that use `AppShell` refactored into server page + client form to avoid pulling the server-only graph into the client bundle
 
+## Comments QA (Phase 6)
+
+- [x] `comment.create` — post must exist (NOT_FOUND), parent must belong to same post, `depth` capped at 5 (`Math.min(parent.depth+1, 5)`), post `commentCount` incremented via `db.batch`
+- [x] `comment.list` — single flat query + app-side tree assembly (group by `parentCommentId`), sorted by Best/New/Top
+- [x] Depth cap verified: 6-deep reply chain produced depths [1..4, 5, 5] and depth-5 nodes render flat (no nesting)
+- [x] `comment.update`/`comment.delete` — author-only (FORBIDDEN otherwise); soft delete sets `deletedAt` + body `"[deleted]"`
+- [x] Deleted comments render "[deleted]" header + "This comment was deleted." note, author hidden; thread structure preserved
+- [x] Collapsible threads (collapse/expand reply count button) verified
+- [x] Unauthenticated: comments render, no input form; logged-in: "Add a comment…" input
+- [x] Markdown in comments (bold, inline code) rendered via shared `Markdown` component
+- [x] Comment mutations invalidate `comment.list` query via `utils.comment.list.invalidate({ postId })`
+- [x] Seed `commentCount` values corrected to match actual comment rows
+
 ## Architecture Decisions (Phase 1)
 
 - **Session strategy: JWT, not database.** Auth.js v5 beta is incompatible with the Credentials provider when using `session.strategy: "database"` — the sign-in returns a JWE cookie but no DB session row is created and `auth()` resolves to `null`. Switched to `session: { strategy: "jwt" }` with `jwt`/`session` callbacks exposing `session.user.id`. The Drizzle adapter is still installed and used for OAuth user/account storage.
@@ -205,9 +221,8 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 
 - OAuth (Google/GitHub) flows are configured with real credentials but not fully E2E-tested in a browser (would redirect to the provider).
 - `AUTH_URL` currently set to `http://localhost:3001` in `.env` (project uses port 3001 locally).
-- Comments section on post detail is a placeholder (Phase 6).
-- Voting UI not present (Phase 7); score is read-only for now.
-- Image-post creation flow shares the verified S3 pipeline but wasn't re-tested via UI this phase (Phase 3 avatar upload already exercised the same presigned PUT path).
+- Voting UI not present (Phase 7); score is read-only on posts and comments.
+- Image-post creation flow shares the verified S3 pipeline but wasn't re-tested via UI this phase.
 - Community deletion UI not yet implemented (deferred to Phase 9 moderation).
 
 ## P0/P1/P2 Status
@@ -217,7 +232,7 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 | P1 | 4 | 2 |
 | P2 | 4 | 0 |
 
-Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved. Phase 2 owned P0 issues 7, 8 and P2 issue 15 (Neon HTTP: no pooling by design, no transactions → `db.batch()`). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model. Phase 5 delivered issue 6 (three-column layout shell) — resolved: layout, feeds, post creation, markdown detail page. P1 issue 9 (rate limiting) remains for Phase 9.
+Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved. Phase 2 owned P0 issues 7, 8 and P2 issue 15 (Neon HTTP: no pooling by design, no transactions → `db.batch()`). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model. Phase 5 delivered issue 6 (three-column layout shell). Phase 6 delivered threaded comments (no new issue-register rows). P1 issue 9 (rate limiting) remains for Phase 9.
 
 ## Recommendations Before Production
 

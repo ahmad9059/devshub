@@ -7,6 +7,7 @@ import { CalendarIcon, MessageCircleIcon, PencilIcon } from "lucide-react";
 import { AppShell } from "~/components/layout/app-shell";
 import { Markdown } from "~/components/markdown";
 import { PostActions } from "~/components/post-actions";
+import { CommentSection } from "~/components/comment-tree";
 import { UserAvatar } from "~/components/user-avatar";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -133,16 +134,11 @@ export default async function PostPage({
           </CardContent>
         </Card>
 
-        <section className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold tracking-tight">Comments</h2>
-          <Card size="sm">
-            <CardContent className="py-6 text-center">
-              <p className="text-muted-foreground text-sm">
-                Comments are coming in the next phase.
-              </p>
-            </CardContent>
-          </Card>
-        </section>
+        <CommentSection
+          postId={post.id}
+          currentUserId={sessionUserId}
+          initialCount={post.commentCount}
+        />
       </article>
     </AppShell>
   );

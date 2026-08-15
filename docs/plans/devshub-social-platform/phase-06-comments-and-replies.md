@@ -95,24 +95,25 @@ Allow authenticated users to comment on posts and reply to comments (nested up t
 
 ## 6. Acceptance Criteria / QA Checklist
 
-- [ ] Authenticated user can post a top-level comment on any post
-- [ ] Authenticated user can reply to a comment (nested)
-- [ ] Comment tree renders with correct indentation up to 5 levels
-- [ ] Replies at depth 5+ are flat (not further nested)
-- [ ] Comment sorting (Best, New, Top) changes order
-- [ ] Comment author can delete their comment — shows "[deleted]"
-- [ ] Comment author can edit their comment
-- [ ] Unauthenticated user sees comments but no input form
-- [ ] `comment_count` on post increments on new comment
-- [ ] Markdown renders in comments (bold, links, code)
-- [ ] Collapsible threads work (click to collapse/expand)
-- [ ] `pnpm check` and `pnpm build` pass
-- [ ] All UI uses shadcn semantic tokens
+- [x] Authenticated user can post a top-level comment on any post
+- [x] Authenticated user can reply to a comment (nested)
+- [x] Comment tree renders with correct indentation up to 5 levels
+- [x] Replies at depth 5+ are flat (not further nested)
+- [x] Comment sorting (Best, New, Top) changes order
+- [x] Comment author can delete their comment — shows "[deleted]"
+- [x] Comment author can edit their comment
+- [x] Unauthenticated user sees comments but no input form
+- [x] `comment_count` on post increments on new comment
+- [x] Markdown renders in comments (bold, links, code)
+- [x] Collapsible threads work (click to collapse/expand)
+- [x] `pnpm check` and `pnpm build` pass
+- [x] All UI uses shadcn semantic tokens
 
 ## 7. Open Questions
 
-1. Should comment editing be time-limited? **Recommendation: no time limit for launch.** Add later if abuse.
-2. Should deleted comments show "[deleted]" or be hidden entirely? **Recommendation: show "[deleted]"** — preserves thread structure, like Reddit.
+1. Should comment editing be time-limited? **Resolved: no time limit for launch.** Add later if abuse.
+2. Should deleted comments show "[deleted]" or be hidden entirely? **Resolved: show "[deleted]"** — preserves thread structure, like Reddit. Author is hidden and a "This comment was deleted." note is shown.
+3. **Note:** post detail lives at `/post/[slug]` (Phase 5 decision), so the comment section was added there rather than the plan's `/community/[slug]/post/[id]`.
 
 ## 8. Skills to Load
 

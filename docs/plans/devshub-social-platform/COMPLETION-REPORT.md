@@ -1,10 +1,10 @@
 # Completion Report — DevsHub Social Platform
 
-> Status: Phases 1–5 completed. Remaining phases pending.
+> Status: Phases 1–6 completed. Remaining phases pending.
 
 ## Summary
 
-Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials, Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile). Phase 2 delivered the complete domain schema — communities, community memberships, posts, comments, and polymorphic votes — plus Drizzle relations, migrations, and an idempotent seed script. Phase 3 delivered user profiles (username/bio/avatar, profile pages, settings, onboarding). Phase 4 delivered communities (create/join/leave/update/list with the `d/` prefix). Phase 5 delivered the core three-column layout shell, a post tRPC router (create/getBySlug/list/listByUser/update/delete), the home feed with Hot/New/Top sorting and cursor-based infinite scroll, per-community feeds, markdown rendering (GFM + sanitize), post creation, and the post detail page at `/post/[slug]` with author-only edit/delete (soft delete). Post URLs use SEO-friendly title slugs per product decision.
+Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials, Drizzle auth schema, protected tRPC procedures, `proxy.ts` route protection, shadcn login/signup pages, Cloudflare Turnstile). Phase 2 delivered the complete domain schema (communities, memberships, posts, comments, polymorphic votes) with Drizzle relations, migrations, and an idempotent seed script. Phase 3 delivered user profiles (username/bio/avatar, profile pages, settings, onboarding). Phase 4 delivered communities (create/join/leave/update/list with the `d/` prefix). Phase 5 delivered the three-column layout shell, posts router, home/community feeds with Hot/New/Top sorting and cursor-based infinite scroll, markdown rendering, and the post detail page at `/post/[slug]` with author-only edit/delete. Phase 6 delivered threaded comments: a comment router (create/list/update/delete), a recursive comment tree with indentation and collapsible threads, inline comment/reply inputs, Best/New/Top comment sorting, depth-capped nesting (5 levels then flat), soft-delete "[deleted]" display, and markdown rendering in comments. Seed data corrected to match actual comment counts.
 
 ## Phases Completed
 
@@ -13,7 +13,7 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - [x] Phase 3: User Profiles
 - [x] Phase 4: Communities
 - [x] Phase 5: Posts & Feed
-- [ ] Phase 6: Comments & Replies
+- [x] Phase 6: Comments & Replies
 - [ ] Phase 7: Voting & Ranking
 - [ ] Phase 8: Search & Discovery
 - [ ] Phase 9: Moderation & Safety
@@ -21,7 +21,7 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 
 ## Agents / Developers Involved
 
-- opencode (deepseek-v4-flash) — implemented Phases 1, 2, 3, 4, and 5
+- opencode (deepseek-v4-flash) — implemented Phases 1, 2, 3, 4, 5, and 6
 
 ## Files Changed
 
@@ -97,7 +97,13 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - `package.json` — added `react-markdown`, `remark-gfm`, `rehype-sanitize`
 
 ### Phase 6 — Comments & Replies
-<!-- files -->
+- `src/server/api/routers/comment.ts` — new, comment router (create/list/update/delete); app-side tree assembly; depth cap 5; post `commentCount` increment via `db.batch`
+- `src/server/api/root.ts` — registered `comment` router
+- `src/components/comment-input.tsx` — new, inline comment/reply form (invalidates `comment.list`)
+- `src/components/comment-card.tsx` — new, comment card (author, markdown body, score, reply/edit/delete)
+- `src/components/comment-tree.tsx` — new, recursive thread with indentation, collapsible replies, Best/New/Top tabs
+- `src/app/post/[slug]/page.tsx` — replaced comments placeholder with `CommentSection`
+- `src/server/db/seed.ts` — corrected seed `commentCount` values
 
 ### Phase 7 — Voting & Ranking
 <!-- files -->
@@ -116,20 +122,19 @@ Phase 1 delivered the auth foundation (Auth.js v5 with Google/GitHub/Credentials
 - [x] `pnpm check` passes
 - [x] `pnpm build` passes
 - [ ] `pnpm format:check` passes (docs + lockfile formatting pending; source is clean)
-- [x] Phase 1–5 E2E flows pass (see QA-REPORT.md)
+- [x] Phase 1–6 E2E flows pass (see QA-REPORT.md)
 - [ ] Lighthouse scores meet thresholds (deferred to Phase 10)
 - [ ] Production deployment successful (deferred to Phase 10)
 
 ## Known Gaps
 
 - OAuth (Google/GitHub) providers configured with real credentials but not E2E-tested in a browser.
-- Comments section on post detail is a placeholder (Phase 6).
-- Voting UI not present (Phase 7); score is read-only.
-- Image-post creation uses the shared S3 pipeline (verified via avatar upload in Phase 3) but wasn't re-tested via UI this phase.
+- Voting UI not present (Phase 7); score is read-only on posts and comments.
+- Image-post creation uses the shared S3 pipeline (verified via avatar upload in Phase 3) but wasn't re-tested via UI.
 - Community deletion UI not implemented (deferred to Phase 9).
 - Auth.js v5 Credentials provider forced JWT session strategy (documented deviation from plan).
 - No search GIN indexes yet (Phase 8); no moderation tables yet (Phase 9).
 
 ## Next Steps
 
-- Phase 6: Comments & Replies (comment tree, nested replies, post comment section).
+- Phase 7: Voting & Ranking (upvote/downvote on posts and comments, hot ranking, vote deduplication).

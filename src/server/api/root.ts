@@ -1,4 +1,5 @@
 import { authRouter } from "~/server/api/routers/auth";
+import { commentRouter } from "~/server/api/routers/comment";
 import { communityRouter } from "~/server/api/routers/community";
 import { postRouter } from "~/server/api/routers/post";
 import { profileRouter } from "~/server/api/routers/profile";
@@ -11,6 +12,7 @@ export const appRouter = createTRPCRouter({
   profile: profileRouter,
   community: communityRouter,
   post: postRouter,
+  comment: commentRouter,
 });
 export type AppRouter = typeof appRouter;
 export const createCaller = createCallerFactory(appRouter);

@@ -115,7 +115,7 @@ async function main() {
         slug: slugify("React 19: what changed and what's stable now"),
         body: "React 19 shipped with Actions, useOptimistic, and the new compiler story. Here's what's safe to adopt today and what still needs care.",
         score: 42,
-        commentCount: 2,
+        commentCount: 3,
       },
       {
         communityId: reactjs!.id,
@@ -124,7 +124,7 @@ async function main() {
         slug: slugify("Server Components: when to use them, when not to"),
         body: "Server Components are powerful but not always the answer. A practical guide to deciding between client and server rendering boundaries.",
         score: 27,
-        commentCount: 1,
+        commentCount: 2,
       },
       {
         communityId: reactjs!.id,
@@ -133,7 +133,7 @@ async function main() {
         slug: slugify("Do you still reach for Redux?"),
         body: "With context, zustand, and other lighter options, do you still use Redux for new projects? Curious about the current consensus.",
         score: 15,
-        commentCount: 1,
+        commentCount: 2,
       },
       {
         communityId: typescript!.id,
@@ -142,7 +142,7 @@ async function main() {
         slug: slugify("Type-safe tRPC with Drizzle relations"),
         body: "Combining tRPC v11 with Drizzle relational queries gives you end-to-end type safety with almost zero ceremony. Here's the setup.",
         score: 33,
-        commentCount: 1,
+        commentCount: 2,
       },
       {
         communityId: typescript!.id,
