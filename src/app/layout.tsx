@@ -3,6 +3,7 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { OnboardingGuard } from "~/components/onboarding-guard";
 import { ThemeProvider } from "~/components/theme-provider";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { TRPCReactProvider } from "~/trpc/react";
@@ -31,7 +32,9 @@ export default function RootLayout({
       <body className="min-h-screen antialiased">
         <TRPCReactProvider>
           <ThemeProvider>
-            <TooltipProvider>{children}</TooltipProvider>
+            <OnboardingGuard>
+              <TooltipProvider>{children}</TooltipProvider>
+            </OnboardingGuard>
           </ThemeProvider>
         </TRPCReactProvider>
       </body>

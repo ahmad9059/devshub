@@ -1,0 +1,1 @@
+ALTER TABLE "devshub_user" ADD COLUMN "usernameUpdatedAt" timestamp with time zone;

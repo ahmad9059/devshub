@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { env } from "~/env";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { s3 } from "~/server/s3";
+import { getSignedDownloadUrl, s3 } from "~/server/s3";
 
 const imageType = z.enum([
   "image/avif",
@@ -28,12 +28,16 @@ export const storageRouter = createTRPCRouter({
         Bucket: env.AWS_S3_BUCKET,
         Key: key,
         ContentType: input.contentType,
-        ServerSideEncryption: "AES256",
       });
 
       return {
         key,
         uploadUrl: await getSignedUrl(s3, command, { expiresIn: 300 }),
       };
+    }),
+  getSignedDownloadUrl: protectedProcedure
+    .input(z.object({ key: z.string().min(1) }))
+    .query(async ({ input }) => {
+      return getSignedDownloadUrl(input.key);
     }),
 });

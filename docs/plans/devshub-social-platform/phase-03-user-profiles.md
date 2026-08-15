@@ -100,21 +100,21 @@ Allow authenticated users to set a username, bio, and avatar. Display a public p
 
 ## 6. Acceptance Criteria / QA Checklist
 
-- [ ] User can set username in `/settings` — validation prevents invalid formats
-- [ ] Username availability check works in real-time (debounced)
-- [ ] Avatar upload works: file → S3 → displayed in settings and profile
-- [ ] Public profile page `/user/[username]` renders for any visitor
-- [ ] Profile page shows posts and comments tabs
-- [ ] Non-existent username shows 404
-- [ ] Unauthenticated user visiting `/settings` is redirected to `/login`
-- [ ] User without username is redirected to `/onboarding` after login
-- [ ] `pnpm check` and `pnpm build` pass
-- [ ] All UI uses shadcn semantic tokens — no hardcoded colors
+- [x] User can set username in `/settings` — validation prevents invalid formats
+- [x] Username availability check works in real-time (debounced)
+- [x] Avatar upload works: file → S3 → displayed in settings and profile
+- [x] Public profile page `/user/[username]` renders for any visitor
+- [x] Profile page shows posts and comments tabs
+- [x] Non-existent username shows 404
+- [x] Unauthenticated user visiting `/settings` is redirected to `/login`
+- [x] User without username is redirected to `/onboarding` after login
+- [x] `pnpm check` and `pnpm build` pass
+- [x] All UI uses shadcn semantic tokens — no hardcoded colors
 
 ## 7. Open Questions
 
-1. Should avatars be served via presigned GET URLs or public CDN? **Recommendation: presigned GET URLs** — keeps S3 bucket private, consistent with existing security model.
-2. Should usernames be changeable after setting? **Recommendation: yes, but rate-limited (once per 30 days).**
+1. Should avatars be served via presigned GET URLs or public CDN? **Resolved: presigned GET URLs** — S3 bucket stays private; `storage.getSignedDownloadUrl` returns a 1-hour presigned URL, resolved server-side on the public profile page and client-side (protected) on settings.
+2. Should usernames be changeable after setting? **Resolved: yes, but rate-limited (once per 30 days)** — enforced server-side via `usernameUpdatedAt`; returns `FORBIDDEN` if within 30 days.
 
 ## 8. Skills to Load
 

@@ -130,19 +130,19 @@ Define the complete PostgreSQL schema for the social platform: communities, comm
 
 ## 6. Acceptance Criteria / QA Checklist
 
-- [ ] `pnpm db:generate` produces clean migration SQL with no errors
-- [ ] `pnpm db:push` applies successfully to Neon dev branch
-- [ ] All tables visible in Neon console or Drizzle Studio
-- [ ] `pnpm db:seed` inserts test data without errors
-- [ ] Drizzle relations work: `db.query.posts.findMany({ with: { author: true } })` returns author data
-- [ ] `pnpm check` passes
-- [ ] `pnpm build` succeeds
-- [ ] No raw SQL — all schema defined in Drizzle TypeScript
+- [x] `pnpm db:generate` produces clean migration SQL with no errors
+- [x] `pnpm db:push` applies successfully to Neon dev branch
+- [x] All tables visible in Neon console or Drizzle Studio
+- [x] `pnpm db:seed` inserts test data without errors
+- [x] Drizzle relations work: `db.query.posts.findMany({ with: { author: true } })` returns author data
+- [x] `pnpm check` passes
+- [x] `pnpm build` succeeds
+- [x] No raw SQL — all schema defined in Drizzle TypeScript
 
 ## 7. Open Questions
 
-1. Should votes be polymorphic (single table for posts + comments) or separate tables? **Recommendation: polymorphic** — simpler, fewer tables, validated in app layer.
-2. Should we use database triggers for denormalized counters or update them in application code? **Recommendation: application code** — Drizzle doesn't support triggers natively; update counters in the same transaction as the write.
+1. Should votes be polymorphic (single table for posts + comments) or separate tables? **Resolved: polymorphic** — `devshub_votes` uses `targetType`/`targetId` with no FK on target (validated in app), unique index on `(userId, targetType, targetId)`.
+2. Should we use database triggers for denormalized counters or update them in application code? **Resolved: application code** — `score`, `comment_count`, `member_count`, `post_count` are updated transactionally in app code (Phase 5+), per the plan recommendation.
 
 ## 8. Skills to Load
 

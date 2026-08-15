@@ -8,6 +8,34 @@
       "when": 1786783267502,
       "tag": "0000_public_raza",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786786432483,
+      "tag": "0001_safe_thundra",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786786936626,
+      "tag": "0002_sad_green_goblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786787130629,
+      "tag": "0003_needy_swordsman",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786789661057,
+      "tag": "0004_tan_spitfire",
+      "breakpoints": true
     }
   ]
 }

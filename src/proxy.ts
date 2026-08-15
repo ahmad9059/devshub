@@ -1,9 +1,20 @@
+import { NextResponse } from "next/server";
+
 import { auth } from "~/auth";
 
-const PROTECTED_PATHS = ["/profile", "/settings", "/create", "/submit"];
+const PROTECTED_PATHS = [
+  "/profile",
+  "/settings",
+  "/create",
+  "/submit",
+  "/onboarding",
+];
 
 export const proxy = auth((req) => {
   const { nextUrl, auth: session } = req;
+
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-pathname", nextUrl.pathname);
 
   const isProtected = PROTECTED_PATHS.some(
     (path) =>
@@ -16,7 +27,7 @@ export const proxy = auth((req) => {
     return Response.redirect(loginUrl);
   }
 
-  return undefined;
+  return NextResponse.next({ request: { headers: requestHeaders } });
 });
 
 export const config = {
