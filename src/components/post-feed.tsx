@@ -6,7 +6,13 @@ import { PostCard } from "~/components/post-card";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { api } from "~/trpc/react";
 
-export function PostFeed({ communitySlug }: { communitySlug?: string }) {
+export function PostFeed({
+  communitySlug,
+  isLoggedIn,
+}: {
+  communitySlug?: string;
+  isLoggedIn?: boolean;
+}) {
   const [sort, setSort] = useState<"hot" | "new" | "top">("hot");
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -63,7 +69,13 @@ export function PostFeed({ communitySlug }: { communitySlug?: string }) {
           No posts yet.
         </p>
       ) : (
-        posts.map((post) => <PostCard key={post.id} post={post} />)
+        posts.map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            isLoggedIn={Boolean(isLoggedIn)}
+          />
+        ))
       )}
 
       <div ref={loadMoreRef} className="h-1" />

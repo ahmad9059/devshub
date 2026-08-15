@@ -140,7 +140,7 @@ export default async function CommunityPage({
           </div>
         </section>
 
-        <PostFeed communitySlug={slug} />
+        <PostFeed communitySlug={slug} isLoggedIn={Boolean(sessionUserId)} />
       </div>
     </AppShell>
   );

@@ -1,6 +1,6 @@
 # QA Report — DevsHub Social Platform
 
-> Status: Phases 1–6 completed and verified. Remaining phases pending.
+> Status: Phases 1–7 completed and verified. Remaining phases pending.
 
 ## What Was Reviewed
 
@@ -10,6 +10,7 @@
 - [x] Phase 4: Communities
 - [x] Phase 5: Posts & Feed
 - [x] Phase 6: Comments & Replies
+- [x] Phase 7: Voting & Ranking
 - [ ] Phase 2: Database Schema
 - [ ] Phase 3: User Profiles
 - [ ] Phase 4: Communities
@@ -27,6 +28,7 @@
 - Phase 4 added community creation, community pages, join/leave, community list, and owner/moderator settings.
 - Phase 5 added the three-column layout shell, post creation, home/community feeds with sorting + infinite scroll, markdown rendering, and the post detail page with edit/delete.
 - Phase 6 added threaded comments: comment router (create/list/update/delete), recursive comment tree with indentation, comment input for top-level/replies, comment sorting (best/new/top), collapsible threads, soft-delete "[deleted]", and markdown in comments.
+- Phase 7 added voting & ranking: vote router (cast with toggle/change semantics), optimistic vote buttons on posts and comments, Reddit hot ranking, `myVote` state in feeds.
 
 ## Files Changed
 
@@ -35,6 +37,7 @@
 - Phase 4: `src/server/api/routers/community.ts` (new), `src/server/api/root.ts` (register), `src/app/create-community/page.tsx` (new), `src/app/community/[slug]/page.tsx` (new), `src/app/community/[slug]/settings/page.tsx` (new), `src/components/join-button.tsx` (new), `community-list.tsx` (new), `image-upload-button.tsx` (new), `src/proxy.ts` (protect /create-community), `d/` prefix across community UI.
 - Phase 5: `src/server/api/routers/post.ts` (new), `src/server/api/root.ts` (register), `src/components/layout/app-shell.tsx` (new, three-column), `src/components/post-card.tsx` (new), `src/components/post-feed.tsx` (new, infinite scroll + sort tabs), `src/components/markdown.tsx` (new), `src/components/post-actions.tsx` (new), `src/app/page.tsx` (home feed), `src/app/submit/page.tsx` + `submit-form.tsx` (new), `src/app/community/[slug]/page.tsx` (feed), `src/app/post/[slug]/page.tsx` (new, detail) + `edit/page.tsx` + `edit-post-form.tsx`, `package.json` (react-markdown, remark-gfm, rehype-sanitize).
 - Phase 6: `src/server/api/routers/comment.ts` (new), `src/server/api/root.ts` (register), `src/components/comment-input.tsx` (new), `src/components/comment-card.tsx` (new), `src/components/comment-tree.tsx` (new), `src/app/post/[slug]/page.tsx` (comment section), `src/server/db/seed.ts` (corrected commentCount values).
+- Phase 7: `src/server/api/routers/vote.ts` (new), `src/server/api/root.ts` (register), `src/components/vote-button.tsx` (new), `src/components/post-card.tsx` (vote button + myVote), `src/components/comment-card.tsx` (vote button + myVote), `src/components/post-feed.tsx` (isLoggedIn prop), `src/server/api/routers/post.ts` (myVote + hot ranking), `src/server/api/routers/comment.ts` (myVote), `src/app/page.tsx` + `src/app/community/[slug]/page.tsx` (isLoggedIn), `src/app/post/[slug]/page.tsx` (post vote button).
 
 ## Migrations Added
 
@@ -94,12 +97,12 @@
 - [x] Comment edit works (inline edit + Save)
 
 ### Voting Flows
-- [ ] Upvote post works
-- [ ] Downvote post works
-- [ ] Toggle vote off works
-- [ ] Change vote works
-- [ ] Vote state persists on reload
-- [ ] Vote on comment works
+- [x] Upvote post works (score +1, arrow highlights)
+- [x] Downvote post works (score -1, arrow highlights)
+- [x] Toggle vote off works (score reverts)
+- [x] Change vote works (up→down delta -2)
+- [x] Vote state persists on reload
+- [x] Vote on comment works (score +1, arrow highlights)
 
 ### Search Flows
 - [ ] Search posts works
@@ -211,6 +214,18 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - [x] Comment mutations invalidate `comment.list` query via `utils.comment.list.invalidate({ postId })`
 - [x] Seed `commentCount` values corrected to match actual comment rows
 
+## Voting QA (Phase 7)
+
+- [x] `vote.cast` — new vote (+value), toggle off (revert), change (delta 2×value), via `db.batch` (Neon HTTP has no transactions)
+- [x] Target must exist and not be deleted (NOT_FOUND)
+- [x] Duplicate votes prevented by `(userId, targetType, targetId)` unique index
+- [x] `post.list` / `post.getBySlug` attach `myVote` (batched `inArray` query); `comment.list` attaches `myVote` per node
+- [x] Optimistic UI: `onMutate` updates score + vote state immediately, `onError` rolls back, `onSettled` invalidates queries
+- [x] Hot ranking: Reddit algorithm `log10(max(|score|,1)) + (epoch - 1134028003)/45000` applied for "hot" sort
+- [x] Verified via UI: upvote (+1 + filled arrow), downvote, toggle-off, up→down change (-2), comment upvote
+- [x] Unauthenticated vote click → `signIn()` redirect (via `isLoggedIn` prop)
+- [x] Seed re-run after testing to restore a clean, consistent state
+
 ## Architecture Decisions (Phase 1)
 
 - **Session strategy: JWT, not database.** Auth.js v5 beta is incompatible with the Credentials provider when using `session.strategy: "database"` — the sign-in returns a JWE cookie but no DB session row is created and `auth()` resolves to `null`. Switched to `session: { strategy: "jwt" }` with `jwt`/`session` callbacks exposing `session.user.id`. The Drizzle adapter is still installed and used for OAuth user/account storage.
@@ -221,9 +236,9 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 
 - OAuth (Google/GitHub) flows are configured with real credentials but not fully E2E-tested in a browser (would redirect to the provider).
 - `AUTH_URL` currently set to `http://localhost:3001` in `.env` (project uses port 3001 locally).
-- Voting UI not present (Phase 7); score is read-only on posts and comments.
 - Image-post creation flow shares the verified S3 pipeline but wasn't re-tested via UI this phase.
 - Community deletion UI not yet implemented (deferred to Phase 9 moderation).
+- Vote fuzzing and karma/reputation deferred (out of scope per plan).
 
 ## P0/P1/P2 Status
 | Severity | Count | Resolved |
@@ -232,7 +247,7 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 | P1 | 4 | 2 |
 | P2 | 4 | 0 |
 
-Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved. Phase 2 owned P0 issues 7, 8 and P2 issue 15 (Neon HTTP: no pooling by design, no transactions → `db.batch()`). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model. Phase 5 delivered issue 6 (three-column layout shell). Phase 6 delivered threaded comments (no new issue-register rows). P1 issue 9 (rate limiting) remains for Phase 9.
+Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved. Phase 2 owned P0 issues 7, 8 and P2 issue 15 (Neon HTTP: no pooling by design, no transactions → `db.batch()`). Phase 3 owned issue 3 (profile fields) — resolved. Phase 4 delivered the community model. Phase 5 delivered issue 6 (three-column layout shell). Phase 6 delivered threaded comments. Phase 7 delivered voting & ranking (no new issue-register rows). P1 issue 9 (rate limiting) remains for Phase 9.
 
 ## Recommendations Before Production
 

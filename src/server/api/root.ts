@@ -4,6 +4,7 @@ import { communityRouter } from "~/server/api/routers/community";
 import { postRouter } from "~/server/api/routers/post";
 import { profileRouter } from "~/server/api/routers/profile";
 import { storageRouter } from "~/server/api/routers/storage";
+import { voteRouter } from "~/server/api/routers/vote";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 export const appRouter = createTRPCRouter({
@@ -13,6 +14,7 @@ export const appRouter = createTRPCRouter({
   community: communityRouter,
   post: postRouter,
   comment: commentRouter,
+  vote: voteRouter,
 });
 export type AppRouter = typeof appRouter;
 export const createCaller = createCallerFactory(appRouter);

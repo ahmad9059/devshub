@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MessageCircleIcon } from "lucide-react";
 
 import { UserAvatar } from "~/components/user-avatar";
+import { VoteButton } from "~/components/vote-button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 function timeAgo(date: Date): string {
@@ -22,6 +23,7 @@ function timeAgo(date: Date): string {
 export function PostCard({
   post,
   imageSrc,
+  isLoggedIn,
 }: {
   post: {
     id: string;
@@ -32,61 +34,76 @@ export function PostCard({
     score: number;
     commentCount: number;
     createdAt: Date;
+    myVote: number | null;
     author: { username: string | null; name: string | null };
     community: { slug: string };
   };
   imageSrc?: string | null;
+  isLoggedIn?: boolean;
 }) {
   return (
     <Card size="sm">
-      <CardHeader>
-        <CardTitle className="text-base leading-snug">
-          <Link href={`/post/${post.slug}`} className="hover:text-primary">
-            {post.title}
-          </Link>
-        </CardTitle>
-      </CardHeader>
-      {imageSrc && (
-        <CardContent className="pt-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageSrc}
-            alt={post.title}
-            className="max-h-72 w-full rounded-md object-cover"
+      <div className="flex gap-3">
+        <div className="pt-(--card-spacing) pl-(--card-spacing)">
+          <VoteButton
+            targetType="post"
+            targetId={post.id}
+            score={post.score}
+            myVote={post.myVote}
+            isLoggedIn={Boolean(isLoggedIn)}
+            layout="vertical"
           />
-        </CardContent>
-      )}
-      <CardContent>
-        <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-          <Link
-            href={`/community/${post.community.slug}`}
-            className="hover:text-foreground font-medium"
-          >
-            d/{post.community.slug}
-          </Link>
-          <span className="flex items-center gap-1">
-            <UserAvatar
-              name={post.author.name}
-              username={post.author.username}
-              size="sm"
-            />
-            <Link
-              href={`/user/${post.author.username ?? ""}`}
-              className="hover:text-foreground"
-            >
-              {post.author.username ?? post.author.name}
-            </Link>
-          </span>
-          <span>{timeAgo(post.createdAt)}</span>
         </div>
-      </CardContent>
-      <CardContent className="text-muted-foreground flex items-center gap-4 text-xs">
-        <span>{post.score} points</span>
-        <span className="flex items-center gap-1">
-          <MessageCircleIcon className="size-3.5" aria-hidden="true" />
-          {post.commentCount} comments
-        </span>
-      </CardContent>
+        <div className="min-w-0 flex-1">
+          <CardHeader>
+            <CardTitle className="text-base leading-snug">
+              <Link href={`/post/${post.slug}`} className="hover:text-primary">
+                {post.title}
+              </Link>
+            </CardTitle>
+          </CardHeader>
+          {imageSrc && (
+            <CardContent className="pt-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageSrc}
+                alt={post.title}
+                className="max-h-72 w-full rounded-md object-cover"
+              />
+            </CardContent>
+          )}
+          <CardContent>
+            <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <Link
+                href={`/community/${post.community.slug}`}
+                className="hover:text-foreground font-medium"
+              >
+                d/{post.community.slug}
+              </Link>
+              <span className="flex items-center gap-1">
+                <UserAvatar
+                  name={post.author.name}
+                  username={post.author.username}
+                  size="sm"
+                />
+                <Link
+                  href={`/user/${post.author.username ?? ""}`}
+                  className="hover:text-foreground"
+                >
+                  {post.author.username ?? post.author.name}
+                </Link>
+              </span>
+              <span>{timeAgo(post.createdAt)}</span>
+            </div>
+          </CardContent>
+          <CardContent className="text-muted-foreground flex items-center gap-4 text-xs">
+            <span className="flex items-center gap-1">
+              <MessageCircleIcon className="size-3.5" aria-hidden="true" />
+              {post.commentCount} comments
+            </span>
+          </CardContent>
+        </div>
+      </div>
     </Card>
   );
 }

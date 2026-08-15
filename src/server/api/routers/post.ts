@@ -20,6 +20,13 @@ const slugify = (title: string): string =>
 
 const postSortSchema = z.enum(["hot", "new", "top"]);
 
+// Reddit hot ranking: log10(max(|score|,1)) + (epoch - 1134028003) / 45000
+function hotScore(score: number, createdAt: Date): number {
+  const order = Math.log10(Math.max(Math.abs(score), 1));
+  const seconds = createdAt.getTime() / 1000;
+  return order + (seconds - 1134028003) / 45000;
+}
+
 function requireUserId(session: { user?: { id?: string } | null } | null) {
   const id = session?.user?.id;
   if (!id) {
@@ -126,7 +133,22 @@ export const postRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
-      return post;
+      const userId = ctx.session?.user?.id ?? null;
+      let myVote: number | null = null;
+      if (userId) {
+        const vote = await ctx.db.query.votes.findFirst({
+          where: (table, { and, eq }) =>
+            and(
+              eq(table.userId, userId),
+              eq(table.targetType, "post"),
+              eq(table.targetId, post.id),
+            ),
+          columns: { value: true },
+        });
+        myVote = vote?.value ?? null;
+      }
+
+      return { ...post, myVote };
     }),
 
   list: publicProcedure
@@ -187,10 +209,43 @@ export const postRouter = createTRPCRouter({
 
       const hasMore = items.length > limit;
       const pageItems = items.slice(0, limit);
+
+      // Hot ranking: Reddit hot algorithm (order by score DESC, createdAt DESC
+      // proxy for launch, per plan §3.4). Applied consistently with cursor above.
+      if (sort === "hot") {
+        pageItems.sort((a, b) => {
+          const hotA = hotScore(a.score, a.createdAt);
+          const hotB = hotScore(b.score, b.createdAt);
+          return hotB - hotA;
+        });
+      }
+
       const last = pageItems[pageItems.length - 1];
 
+      // Attach current user's vote state for each item (batch query).
+      const userId = ctx.session?.user?.id ?? null;
+      let myVotes: Record<string, number> = {};
+      if (userId && pageItems.length > 0) {
+        const rows = await ctx.db.query.votes.findMany({
+          where: (table, { and, eq, inArray }) =>
+            and(
+              eq(table.userId, userId),
+              eq(table.targetType, "post"),
+              inArray(
+                table.targetId,
+                pageItems.map((p) => p.id),
+              ),
+            ),
+          columns: { targetId: true, value: true },
+        });
+        myVotes = Object.fromEntries(rows.map((r) => [r.targetId, r.value]));
+      }
+
       return {
-        items: pageItems,
+        items: pageItems.map((post) => ({
+          ...post,
+          myVote: myVotes[post.id] ?? null,
+        })),
         nextCursor:
           hasMore && last
             ? { createdAt: last.createdAt, score: last.score }

@@ -105,8 +105,31 @@ export const commentRouter = createTRPCRouter({
         with: { author: true },
       });
 
-      const byParent = new Map<string | null, typeof flat>();
-      for (const comment of flat) {
+      const userId = ctx.session?.user?.id ?? null;
+      let myVotes: Record<string, number> = {};
+      if (userId && flat.length > 0) {
+        const rows = await ctx.db.query.votes.findMany({
+          where: (table, { and, eq, inArray }) =>
+            and(
+              eq(table.userId, userId),
+              eq(table.targetType, "comment"),
+              inArray(
+                table.targetId,
+                flat.map((c) => c.id),
+              ),
+            ),
+          columns: { targetId: true, value: true },
+        });
+        myVotes = Object.fromEntries(rows.map((r) => [r.targetId, r.value]));
+      }
+
+      const flatWithVotes = flat.map((comment) => ({
+        ...comment,
+        myVote: myVotes[comment.id] ?? null,
+      }));
+
+      const byParent = new Map<string | null, typeof flatWithVotes>();
+      for (const comment of flatWithVotes) {
         const key = comment.parentCommentId;
         const bucket = byParent.get(key) ?? [];
         bucket.push(comment);
@@ -115,7 +138,10 @@ export const commentRouter = createTRPCRouter({
 
       const topLevel = byParent.get(null) ?? [];
 
-      const sortFn = (a: (typeof flat)[number], b: (typeof flat)[number]) => {
+      const sortFn = (
+        a: (typeof flatWithVotes)[number],
+        b: (typeof flatWithVotes)[number],
+      ) => {
         if (input.sort === "new") {
           return b.createdAt.getTime() - a.createdAt.getTime();
         }
@@ -128,11 +154,13 @@ export const commentRouter = createTRPCRouter({
       };
 
       type CommentNode = {
-        comment: (typeof flat)[number];
+        comment: (typeof flatWithVotes)[number];
         replies: CommentNode[];
       };
 
-      const buildTree = (list: (typeof flat)[number][]): CommentNode[] =>
+      const buildTree = (
+        list: (typeof flatWithVotes)[number][],
+      ): CommentNode[] =>
         list.sort(sortFn).map((comment) => {
           const replies = byParent.get(comment.id) ?? [];
           return {

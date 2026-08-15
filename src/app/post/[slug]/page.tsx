@@ -9,6 +9,7 @@ import { Markdown } from "~/components/markdown";
 import { PostActions } from "~/components/post-actions";
 import { CommentSection } from "~/components/comment-tree";
 import { UserAvatar } from "~/components/user-avatar";
+import { VoteButton } from "~/components/vote-button";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
@@ -111,7 +112,13 @@ export default async function PostPage({
             <Separator />
             <div className="text-muted-foreground flex items-center justify-between text-sm">
               <div className="flex items-center gap-4">
-                <span>{post.score} points</span>
+                <VoteButton
+                  targetType="post"
+                  targetId={post.id}
+                  score={post.score}
+                  myVote={post.myVote}
+                  isLoggedIn={Boolean(sessionUserId)}
+                />
                 <span className="flex items-center gap-1">
                   <MessageCircleIcon className="size-4" aria-hidden="true" />
                   {post.commentCount} comments

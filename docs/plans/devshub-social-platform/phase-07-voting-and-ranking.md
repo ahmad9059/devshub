@@ -90,23 +90,24 @@ Allow authenticated users to upvote or downvote posts and comments. Each user ca
 
 ## 6. Acceptance Criteria / QA Checklist
 
-- [ ] Authenticated user can upvote a post — score increments, arrow highlights
-- [ ] Authenticated user can downvote a post — score decrements, arrow highlights
-- [ ] Clicking the same vote again removes it (toggle off) — score reverts
-- [ ] Changing vote from up to down updates score by -2
-- [ ] Unauthenticated user clicking vote is redirected to `/login`
-- [ ] Vote state persists across page reloads
-- [ ] Feed shows correct vote state for current user on each item
-- [ ] Hot sort orders posts by hot ranking algorithm
-- [ ] Duplicate votes are prevented (unique constraint)
-- [ ] Score counter is accurate after multiple vote changes
-- [ ] `pnpm check` and `pnpm build` pass
-- [ ] All UI uses shadcn semantic tokens
+- [x] Authenticated user can upvote a post — score increments, arrow highlights
+- [x] Authenticated user can downvote a post — score decrements, arrow highlights
+- [x] Clicking the same vote again removes it (toggle off) — score reverts
+- [x] Changing vote from up to down updates score by -2
+- [x] Unauthenticated user clicking vote is redirected to `/login`
+- [x] Vote state persists across page reloads
+- [x] Feed shows correct vote state for current user on each item
+- [x] Hot sort orders posts by hot ranking algorithm
+- [x] Duplicate votes are prevented (unique constraint)
+- [x] Score counter is accurate after multiple vote changes
+- [x] `pnpm check` and `pnpm build` pass
+- [x] All UI uses shadcn semantic tokens
 
 ## 7. Open Questions
 
-1. Should we implement the full Reddit hot algorithm or a simpler proxy? **Recommendation: simpler proxy for launch** (`score DESC, created_at DESC`), add real algorithm if time permits.
-2. Should downvotes be allowed immediately or require minimum karma? **Recommendation: allow immediately for launch.**
+1. Should we implement the full Reddit hot algorithm or a simpler proxy? **Resolved: Reddit hot algorithm implemented** — `log10(max(|score|,1)) + (epoch - 1134028003) / 45000`, applied in application code for the "hot" sort (with the DB ordering as a stable tiebreaker base). Cursor pagination for hot uses the (score, createdAt) proxy consistently.
+2. Should downvotes be allowed immediately or require minimum karma? **Resolved: allowed immediately for launch.**
+3. **Note:** Neon HTTP has no transactions, so vote + score updates use `db.batch()`.
 
 ## 8. Skills to Load
 

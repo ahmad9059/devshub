@@ -19,6 +19,7 @@ type CommentNode = {
     depth: number;
     deletedAt: Date | null;
     createdAt: Date;
+    myVote: number | null;
     author: { id: string; name: string | null; username: string | null };
   };
   replies: CommentNode[];

@@ -7,6 +7,7 @@ import { MessageSquarePlusIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { CommentInput } from "~/components/comment-input";
 import { Markdown } from "~/components/markdown";
 import { UserAvatar } from "~/components/user-avatar";
+import { VoteButton } from "~/components/vote-button";
 import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
 
@@ -37,6 +38,7 @@ export function CommentCard({
     depth: number;
     deletedAt: Date | null;
     createdAt: Date;
+    myVote: number | null;
     author: { id: string; name: string | null; username: string | null };
   };
   currentUserId?: string | null;
@@ -85,7 +87,14 @@ export function CommentCard({
         <span className="text-muted-foreground">
           · {timeAgo(comment.createdAt)}
         </span>
-        <span className="text-muted-foreground">· {comment.score} points</span>
+        <VoteButton
+          targetType="comment"
+          targetId={comment.id}
+          score={comment.score}
+          myVote={comment.myVote}
+          isLoggedIn={Boolean(currentUserId)}
+          layout="horizontal"
+        />
       </div>
 
       {isDeleted ? (
