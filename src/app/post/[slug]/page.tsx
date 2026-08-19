@@ -152,6 +152,7 @@ export default async function PostPage({
                     <Button
                       variant="outline"
                       size="sm"
+                      nativeButton={false}
                       render={<Link href={`/post/${post.slug}/edit`} />}
                     >
                       <PencilIcon aria-hidden="true" />

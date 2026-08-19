@@ -117,6 +117,7 @@ export default async function CommunityPage({
                     <Button
                       variant="ghost"
                       size="sm"
+                      nativeButton={false}
                       render={<Link href={`/community/${slug}/moderation`} />}
                     >
                       <ShieldIcon aria-hidden="true" />
@@ -125,6 +126,7 @@ export default async function CommunityPage({
                     <Button
                       variant="ghost"
                       size="sm"
+                      nativeButton={false}
                       render={<Link href={`/community/${slug}/settings`} />}
                     >
                       <SettingsIcon aria-hidden="true" />

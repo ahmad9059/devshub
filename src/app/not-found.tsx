@@ -25,7 +25,9 @@ export default function NotFoundPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button render={<Link href="/" />}>Back home</Button>
+          <Button nativeButton={false} render={<Link href="/" />}>
+            Back home
+          </Button>
         </CardContent>
       </Card>
     </div>

@@ -47,7 +47,11 @@ export default function ErrorPage({
               <RotateCcwIcon aria-hidden="true" />
               Try again
             </Button>
-            <Button variant="outline" render={<Link href="/" />}>
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/" />}
+            >
               Back home
             </Button>
           </div>

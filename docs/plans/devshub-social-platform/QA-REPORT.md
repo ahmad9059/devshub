@@ -281,6 +281,7 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - [x] No console errors on production home page
 - [x] Theme toggle verified (light/dark/system); mobile 375px single column verified
 - [x] Core E2E smoke: 13 public/protected routes checked (200/302/404), prior-phase flows unchanged
+- [x] Base UI `nativeButton` warnings resolved: all `Button` components that render a non-`<button>` element (e.g. `<Link>`) via the `render` prop now pass `nativeButton={false}`, fixing the console accessibility warning on AppShell, error, not-found, community, post, and submit pages
 - [ ] Vercel deployment + production env vars (requires Vercel project/domain)
 - [ ] Lighthouse CI thresholds (not automated locally; HTML is semantic/accessible)
 

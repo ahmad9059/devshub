@@ -87,6 +87,7 @@ export function SubmitForm() {
               <Button
                 variant="outline"
                 size="sm"
+                nativeButton={false}
                 render={<Link href="/create-community" />}
               >
                 Create a community

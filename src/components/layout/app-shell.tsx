@@ -50,6 +50,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               <Button
                 variant="default"
                 size="sm"
+                nativeButton={false}
                 render={<Link href="/submit" />}
               >
                 <PlusIcon aria-hidden="true" />
@@ -59,6 +60,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               <Button
                 variant="default"
                 size="sm"
+                nativeButton={false}
                 render={<Link href="/login" />}
               >
                 Log in
@@ -120,7 +122,11 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               <p className="text-muted-foreground text-xs">
                 Log in to post, comment, and vote.
               </p>
-              <Button size="sm" render={<Link href="/login" />}>
+              <Button
+                size="sm"
+                nativeButton={false}
+                render={<Link href="/login" />}
+              >
                 Log in
               </Button>
             </div>

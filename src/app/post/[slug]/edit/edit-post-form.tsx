@@ -129,6 +129,7 @@ export function EditPostForm({ slug }: { slug: string }) {
                 </Button>
                 <Button
                   variant="ghost"
+                  nativeButton={false}
                   render={<Link href={`/post/${post.slug}`} />}
                 >
                   Cancel
