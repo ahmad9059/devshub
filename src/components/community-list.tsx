@@ -4,7 +4,7 @@ import { createCaller } from "~/server/api/root";
 import { createTRPCContext } from "~/server/api/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
-export async function CommunityList({ limit = 5 }: { limit?: number }) {
+export async function CommunityList({ limit = 50 }: { limit?: number }) {
   const ctx = await createTRPCContext({ headers: new Headers() });
   const caller = createCaller(ctx);
   const communities = await caller.community.list({ limit });
@@ -14,7 +14,7 @@ export async function CommunityList({ limit = 5 }: { limit?: number }) {
   }
 
   return (
-    <Card>
+    <Card className="shrink-0">
       <CardHeader>
         <CardTitle className="text-sm">Top Communities</CardTitle>
       </CardHeader>

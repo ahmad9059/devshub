@@ -46,7 +46,7 @@ export async function RecentActivity({ userId }: { userId: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Recent activity</CardTitle>
+        <CardTitle className="text-sm">Recent posts</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
         {recentPosts.map((post) => (

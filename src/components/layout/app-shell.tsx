@@ -7,7 +7,6 @@ import { CommunityList } from "~/components/community-list";
 import { RecentActivity } from "~/components/recent-activity";
 import { SearchBar } from "~/components/search-bar";
 import { ThemeToggle } from "~/components/theme-toggle";
-import { TrendingWidget } from "~/components/trending-widget";
 import { UserAvatar } from "~/components/user-avatar";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
@@ -83,7 +82,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       <div className="mx-auto flex max-w-6xl gap-6 px-4 py-6 sm:px-6">
-        <aside className="hidden w-52 shrink-0 flex-col gap-4 lg:flex">
+        <aside className="sticky top-14 hidden max-h-[calc(100vh-3.5rem)] w-52 shrink-0 flex-col gap-4 overflow-y-auto pb-6 lg:flex">
           <nav className="flex flex-col gap-1">
             {navItems.map((item) => (
               <Link
@@ -97,7 +96,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
           <Separator />
-          <CommunityList limit={5} />
+          <CommunityList limit={50} />
         </aside>
 
         <main className="min-w-0 flex-1">{children}</main>
@@ -140,8 +139,6 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           )}
 
           {user && <RecentActivity userId={user.id} />}
-
-          <TrendingWidget />
 
           <div className="flex flex-col gap-3 rounded-lg border p-4">
             <div className="flex items-center gap-2">
