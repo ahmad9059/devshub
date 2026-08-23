@@ -40,6 +40,7 @@ export function CommentCard({
     deletedAt: Date | null;
     createdAt: Date;
     myVote: number | null;
+    authorAvatarSrc?: string | null;
     author: { id: string; name: string | null; username: string | null };
   };
   currentUserId?: string | null;
@@ -75,6 +76,7 @@ export function CommentCard({
             <UserAvatar
               name={comment.author.name}
               username={comment.author.username}
+              src={comment.authorAvatarSrc}
               size="sm"
             />
             <Link

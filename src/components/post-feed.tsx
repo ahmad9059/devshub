@@ -73,6 +73,8 @@ export function PostFeed({
           <PostCard
             key={post.id}
             post={post}
+            imageSrc={post.imageSrc}
+            authorAvatarSrc={post.authorAvatarSrc}
             isLoggedIn={Boolean(isLoggedIn)}
           />
         ))

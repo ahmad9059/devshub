@@ -60,6 +60,8 @@ export function SearchResults({
               <PostCard
                 key={post.id}
                 post={post}
+                imageSrc={post.imageSrc}
+                authorAvatarSrc={post.authorAvatarSrc}
                 isLoggedIn={Boolean(isLoggedIn)}
               />
             ))}
@@ -94,7 +96,12 @@ export function SearchResults({
               href={`/user/${user.username ?? ""}`}
               className="hover:bg-muted flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             >
-              <UserAvatar name={user.name} username={user.username} size="sm" />
+              <UserAvatar
+                name={user.name}
+                username={user.username}
+                src={user.avatarSrc}
+                size="sm"
+              />
               <span className="font-medium">
                 {user.username ? `@${user.username}` : user.name}
               </span>

@@ -67,7 +67,13 @@ export default async function ExplorePage() {
           ) : (
             <div className="flex flex-col gap-3">
               {popularPosts.map((post) => (
-                <PostCard key={post.id} post={post} isLoggedIn={isLoggedIn} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  imageSrc={post.imageSrc}
+                  authorAvatarSrc={post.authorAvatarSrc}
+                  isLoggedIn={isLoggedIn}
+                />
               ))}
             </div>
           )}

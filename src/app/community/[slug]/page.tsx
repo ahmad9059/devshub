@@ -11,6 +11,7 @@ import { UserAvatar } from "~/components/user-avatar";
 import { Button } from "~/components/ui/button";
 import { createCaller } from "~/server/api/root";
 import { createTRPCContext } from "~/server/api/trpc";
+import { getSignedDownloadUrl } from "~/server/s3";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,9 @@ export default async function CommunityPage({
   }
 
   const sessionUserId = ctx.session?.user?.id ?? null;
+  const ownerAvatarSrc = community.owner.avatarObjectKey
+    ? await getSignedDownloadUrl(community.owner.avatarObjectKey)
+    : null;
   const membership = sessionUserId
     ? await ctx.db.query.communityMembers.findFirst({
         where: (table, { and, eq }) =>
@@ -157,6 +161,7 @@ export default async function CommunityPage({
             <UserAvatar
               name={community.owner.name}
               username={community.owner.username}
+              src={ownerAvatarSrc}
               size="sm"
             />
             <span className="text-muted-foreground">

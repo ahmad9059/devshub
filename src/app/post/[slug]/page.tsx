@@ -86,6 +86,9 @@ export default async function PostPage({
   const imageSrc = post.imageObjectKey
     ? await getSignedDownloadUrl(post.imageObjectKey)
     : null;
+  const authorAvatarSrc = post.author.avatarObjectKey
+    ? await getSignedDownloadUrl(post.author.avatarObjectKey)
+    : null;
 
   return (
     <AppShell>
@@ -103,6 +106,7 @@ export default async function PostPage({
                 <UserAvatar
                   name={post.author.name}
                   username={post.author.username}
+                  src={authorAvatarSrc}
                   size="sm"
                 />
                 <Link

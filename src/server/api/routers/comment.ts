@@ -9,6 +9,7 @@ import {
 } from "~/server/api/trpc";
 import { checkRateLimit, commentLimiter } from "~/server/lib/ratelimit";
 import { comments, posts } from "~/server/db/schema";
+import { getSignedDownloadUrl } from "~/server/s3";
 
 const MAX_DEPTH = 5;
 
@@ -126,10 +127,15 @@ export const commentRouter = createTRPCRouter({
         myVotes = Object.fromEntries(rows.map((r) => [r.targetId, r.value]));
       }
 
-      const flatWithVotes = flat.map((comment) => ({
-        ...comment,
-        myVote: myVotes[comment.id] ?? null,
-      }));
+      const flatWithVotes = await Promise.all(
+        flat.map(async (comment) => ({
+          ...comment,
+          myVote: myVotes[comment.id] ?? null,
+          authorAvatarSrc: comment.author.avatarObjectKey
+            ? await getSignedDownloadUrl(comment.author.avatarObjectKey)
+            : null,
+        })),
+      );
 
       const byParent = new Map<string | null, typeof flatWithVotes>();
       for (const comment of flatWithVotes) {

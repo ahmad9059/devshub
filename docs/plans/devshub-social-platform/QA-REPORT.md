@@ -282,6 +282,7 @@ pnpm db:seed   # seed local/dev database (tsx --env-file=.env)
 - [x] Theme toggle verified (light/dark/system); mobile 375px single column verified
 - [x] Core E2E smoke: 13 public/protected routes checked (200/302/404), prior-phase flows unchanged
 - [x] Base UI `nativeButton` warnings resolved: all `Button` components that render a non-`<button>` element (e.g. `<Link>`) via the `render` prop now pass `nativeButton={false}`, fixing the console accessibility warning on AppShell, error, not-found, community, post, and submit pages
+- [x] **Image rendering fix**: signed S3 URLs are now resolved server-side in the tRPC procedures so public pages show images without auth — `post.list`/`search.posts`/`search.trending` return `imageSrc` + `authorAvatarSrc`; `comment.list` returns `authorAvatarSrc`; `search.users` returns `avatarSrc`; AppShell sidebar, post detail, and community pages resolve avatars server-side. Verified live: post images, author avatars, sidebar/profile/settings avatars, and comment avatars all load from S3 (naturalWidth > 0).
 - [ ] Vercel deployment + production env vars (requires Vercel project/domain)
 - [ ] Lighthouse CI thresholds (not automated locally; HTML is semantic/accessible)
 

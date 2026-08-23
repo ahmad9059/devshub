@@ -23,6 +23,7 @@ function timeAgo(date: Date): string {
 export function PostCard({
   post,
   imageSrc,
+  authorAvatarSrc,
   isLoggedIn,
 }: {
   post: {
@@ -39,6 +40,7 @@ export function PostCard({
     community: { slug: string };
   };
   imageSrc?: string | null;
+  authorAvatarSrc?: string | null;
   isLoggedIn?: boolean;
 }) {
   return (
@@ -84,6 +86,7 @@ export function PostCard({
                 <UserAvatar
                   name={post.author.name}
                   username={post.author.username}
+                  src={authorAvatarSrc}
                   size="sm"
                 />
                 <Link

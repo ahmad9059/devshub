@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { posts } from "~/server/db/schema";
+import { getSignedDownloadUrl } from "~/server/s3";
 
 const searchQuerySchema = z.string().trim().min(1).max(100);
 
@@ -60,8 +61,22 @@ export const searchRouter = createTRPCRouter({
       const pageItems = items.slice(0, limit);
       const last = pageItems[pageItems.length - 1];
 
+      const itemsWithUrls = await Promise.all(
+        pageItems.map(async (post) => {
+          const [imageSrc, authorAvatarSrc] = await Promise.all([
+            post.imageObjectKey
+              ? getSignedDownloadUrl(post.imageObjectKey)
+              : Promise.resolve(null),
+            post.author.avatarObjectKey
+              ? getSignedDownloadUrl(post.author.avatarObjectKey)
+              : Promise.resolve(null),
+          ]);
+          return { ...post, myVote: null, imageSrc, authorAvatarSrc };
+        }),
+      );
+
       return {
-        items: pageItems.map((post) => ({ ...post, myVote: null })),
+        items: itemsWithUrls,
         nextCursor:
           hasMore && last
             ? { createdAt: last.createdAt, score: last.score }
@@ -119,7 +134,16 @@ export const searchRouter = createTRPCRouter({
         limit,
       });
 
-      return items;
+      const itemsWithUrls = await Promise.all(
+        items.map(async (user) => ({
+          ...user,
+          avatarSrc: user.avatarObjectKey
+            ? await getSignedDownloadUrl(user.avatarObjectKey)
+            : null,
+        })),
+      );
+
+      return itemsWithUrls;
     }),
 
   trending: publicProcedure.query(async ({ ctx }) => {
@@ -140,9 +164,23 @@ export const searchRouter = createTRPCRouter({
       limit: 10,
     });
 
+    const popularPostsWithUrls = await Promise.all(
+      popularPosts.map(async (post) => {
+        const [imageSrc, authorAvatarSrc] = await Promise.all([
+          post.imageObjectKey
+            ? getSignedDownloadUrl(post.imageObjectKey)
+            : Promise.resolve(null),
+          post.author.avatarObjectKey
+            ? getSignedDownloadUrl(post.author.avatarObjectKey)
+            : Promise.resolve(null),
+        ]);
+        return { ...post, myVote: null, imageSrc, authorAvatarSrc };
+      }),
+    );
+
     return {
       trendingCommunities,
-      popularPosts: popularPosts.map((post) => ({ ...post, myVote: null })),
+      popularPosts: popularPostsWithUrls,
     };
   }),
 });

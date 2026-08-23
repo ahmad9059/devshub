@@ -20,6 +20,7 @@ type CommentNode = {
     deletedAt: Date | null;
     createdAt: Date;
     myVote: number | null;
+    authorAvatarSrc?: string | null;
     author: { id: string; name: string | null; username: string | null };
   };
   replies: CommentNode[];

@@ -11,6 +11,7 @@ import { UserAvatar } from "~/components/user-avatar";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { db } from "~/server/db";
+import { getSignedDownloadUrl } from "~/server/s3";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -26,6 +27,10 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
           avatarObjectKey: true,
         },
       })
+    : null;
+
+  const avatarSrc = user?.avatarObjectKey
+    ? await getSignedDownloadUrl(user.avatarObjectKey)
     : null;
 
   const navItems = [
@@ -102,6 +107,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               <UserAvatar
                 name={user.name}
                 username={user.username}
+                src={avatarSrc}
                 size="default"
               />
               <div className="flex min-w-0 flex-col">

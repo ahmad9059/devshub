@@ -11,6 +11,7 @@ import {
 import { db } from "~/server/db";
 import { checkRateLimit, postLimiter } from "~/server/lib/ratelimit";
 import { communities, posts } from "~/server/db/schema";
+import { getSignedDownloadUrl } from "~/server/s3";
 
 const slugify = (title: string): string =>
   title
@@ -244,11 +245,27 @@ export const postRouter = createTRPCRouter({
         myVotes = Object.fromEntries(rows.map((r) => [r.targetId, r.value]));
       }
 
+      const itemsWithUrls = await Promise.all(
+        pageItems.map(async (post) => {
+          const [imageSrc, authorAvatarSrc] = await Promise.all([
+            post.imageObjectKey
+              ? getSignedDownloadUrl(post.imageObjectKey)
+              : Promise.resolve(null),
+            post.author.avatarObjectKey
+              ? getSignedDownloadUrl(post.author.avatarObjectKey)
+              : Promise.resolve(null),
+          ]);
+          return {
+            ...post,
+            myVote: myVotes[post.id] ?? null,
+            imageSrc,
+            authorAvatarSrc,
+          };
+        }),
+      );
+
       return {
-        items: pageItems.map((post) => ({
-          ...post,
-          myVote: myVotes[post.id] ?? null,
-        })),
+        items: itemsWithUrls,
         nextCursor:
           hasMore && last
             ? { createdAt: last.createdAt, score: last.score }
