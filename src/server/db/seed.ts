@@ -1,13 +1,16 @@
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
 import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
 
 import { env } from "~/env";
 import {
   comments,
   communities,
   communityMembers,
+  images,
   posts,
+  reports,
   users,
   votes,
 } from "./schema";
@@ -17,16 +20,186 @@ const db = drizzle({ client: sql });
 
 const PASSWORD = "Seedpass123!";
 
-function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+const COMMUNITIES: {
+  slug: string;
+  name: string;
+  description: string;
+}[] = [
+  {
+    slug: "reactjs",
+    name: "React",
+    description:
+      "Everything about React — components, hooks, the ecosystem, and best practices.",
+  },
+  {
+    slug: "typescript",
+    name: "TypeScript",
+    description:
+      "TypeScript tips, type gymnastics, and the broader static-typing ecosystem.",
+  },
+  {
+    slug: "javascript",
+    name: "JavaScript",
+    description:
+      "The language of the web — modern JS, syntax, patterns, and tooling.",
+  },
+  {
+    slug: "nextjs",
+    name: "Next.js",
+    description:
+      "The React framework — App Router, Server Components, caching, and deployment.",
+  },
+  {
+    slug: "nodejs",
+    name: "Node.js",
+    description:
+      "Server-side JavaScript — runtimes, streams, workers, and ecosystem libraries.",
+  },
+  {
+    slug: "python",
+    name: "Python",
+    description: "Python for automation, web, data, and everything in between.",
+  },
+  {
+    slug: "rust",
+    name: "Rust",
+    description:
+      "Systems programming with safety — ownership, traits, async, and cargo.",
+  },
+  {
+    slug: "go",
+    name: "Go",
+    description:
+      "Simple, fast, reliable — goroutines, interfaces, and the standard library.",
+  },
+  {
+    slug: "java",
+    name: "Java",
+    description:
+      "JVM, Spring, and enterprise Java — plus modern Java 17+ features.",
+  },
+  {
+    slug: "dotnet",
+    name: ".NET",
+    description: "C#, ASP.NET Core, and the .NET ecosystem across platforms.",
+  },
+  {
+    slug: "php",
+    name: "PHP",
+    description: "PHP 8+, Laravel, and modern web development on the server.",
+  },
+  {
+    slug: "ruby",
+    name: "Ruby",
+    description:
+      "Ruby and Rails — elegant syntax and convention-over-configuration.",
+  },
+  {
+    slug: "swift",
+    name: "Swift",
+    description:
+      "Swift for iOS, macOS, and beyond — SwiftUI, concurrency, and packages.",
+  },
+  {
+    slug: "kotlin",
+    name: "Kotlin",
+    description: "Kotlin for Android, JVM, and multiplatform development.",
+  },
+  {
+    slug: "flutter",
+    name: "Flutter",
+    description: "Flutter and Dart — cross-platform UI from a single codebase.",
+  },
+  {
+    slug: "vue",
+    name: "Vue.js",
+    description: "The progressive framework — composition API, Vite, and Nuxt.",
+  },
+  {
+    slug: "svelte",
+    name: "Svelte",
+    description: "Compile-time reactivity — Svelte 5, runes, and SvelteKit.",
+  },
+  {
+    slug: "angular",
+    name: "Angular",
+    description:
+      "Angular — signals, standalone components, and enterprise-scale apps.",
+  },
+  {
+    slug: "tailwindcss",
+    name: "Tailwind CSS",
+    description: "Utility-first CSS — styling, theming, and workflow tips.",
+  },
+  {
+    slug: "css",
+    name: "CSS",
+    description:
+      "Layout, design systems, and modern CSS features like container queries.",
+  },
+  {
+    slug: "html",
+    name: "HTML",
+    description: "Semantic markup, accessibility, and the web platform itself.",
+  },
+  {
+    slug: "postgresql",
+    name: "PostgreSQL",
+    description:
+      "The world's most advanced open source database — SQL, indexing, and tuning.",
+  },
+  {
+    slug: "mongodb",
+    name: "MongoDB",
+    description:
+      "Document databases, aggregation pipelines, and data modeling.",
+  },
+  {
+    slug: "redis",
+    name: "Redis",
+    description:
+      "In-memory data store — caching, queues, and real-time features.",
+  },
+  {
+    slug: "devops",
+    name: "DevOps",
+    description: "CI/CD, observability, automation, and platform engineering.",
+  },
+  {
+    slug: "docker",
+    name: "Docker",
+    description: "Containers, images, compose, and containerized workflows.",
+  },
+  {
+    slug: "kubernetes",
+    name: "Kubernetes",
+    description: "Orchestration, clusters, Helm, and cloud-native patterns.",
+  },
+  {
+    slug: "aws",
+    name: "AWS",
+    description:
+      "Amazon Web Services — compute, storage, serverless, and architecture.",
+  },
+  {
+    slug: "git",
+    name: "Git",
+    description:
+      "Version control — branching, rebasing, and collaboration workflows.",
+  },
+  {
+    slug: "machinelearning",
+    name: "Machine Learning",
+    description:
+      "ML, LLMs, and AI engineering — models, pipelines, and deployment.",
+  },
+];
 
 async function main() {
   console.log("Seeding DevsHub database...");
 
+  // eslint-disable-next-line drizzle/enforce-delete-with-where -- seed intentionally resets all domain tables
+  await db.delete(reports);
   // eslint-disable-next-line drizzle/enforce-delete-with-where -- seed intentionally resets all domain tables
   await db.delete(votes);
   // eslint-disable-next-line drizzle/enforce-delete-with-where -- seed intentionally resets all domain tables
@@ -37,6 +210,8 @@ async function main() {
   await db.delete(communityMembers);
   // eslint-disable-next-line drizzle/enforce-delete-with-where -- seed intentionally resets all domain tables
   await db.delete(communities);
+  // eslint-disable-next-line drizzle/enforce-delete-with-where -- seed intentionally resets all domain tables
+  await db.delete(images);
   // eslint-disable-next-line drizzle/enforce-delete-with-where -- seed intentionally resets all domain tables
   await db.delete(users);
 
@@ -72,207 +247,69 @@ async function main() {
     ])
     .returning();
 
-  const [reactjs, typescript] = await db
+  const owners = [alice!.id, bob!.id, carol!.id];
+
+  const insertedCommunities = await db
     .insert(communities)
-    .values([
-      {
-        slug: "reactjs",
-        name: "React",
-        description:
-          "Everything about React — components, hooks, ecosystem, and best practices.",
-        ownerId: alice!.id,
-        memberCount: 3,
-        postCount: 3,
-      },
-      {
-        slug: "typescript",
-        name: "TypeScript",
-        description:
-          "TypeScript tips, type gymnastics, and the broader static-typing ecosystem.",
-        ownerId: bob!.id,
-        memberCount: 3,
-        postCount: 2,
-      },
-    ])
+    .values(
+      COMMUNITIES.map((community, index) => ({
+        ...community,
+        ownerId: owners[index % owners.length]!,
+      })),
+    )
     .returning();
 
-  await db.insert(communityMembers).values([
-    { communityId: reactjs!.id, userId: alice!.id, role: "owner" },
-    { communityId: reactjs!.id, userId: bob!.id, role: "member" },
-    { communityId: reactjs!.id, userId: carol!.id, role: "member" },
-    { communityId: typescript!.id, userId: bob!.id, role: "owner" },
-    { communityId: typescript!.id, userId: alice!.id, role: "member" },
-    { communityId: typescript!.id, userId: carol!.id, role: "member" },
-  ]);
+  const membershipValues: {
+    communityId: string;
+    userId: string;
+    role: "owner" | "member";
+  }[] = [];
 
-  const [p1, p2, p3, p4, p5] = await db
-    .insert(posts)
-    .values([
-      {
-        communityId: reactjs!.id,
-        authorId: alice!.id,
-        title: "React 19: what changed and what's stable now",
-        slug: slugify("React 19: what changed and what's stable now"),
-        body: "React 19 shipped with Actions, useOptimistic, and the new compiler story. Here's what's safe to adopt today and what still needs care.",
-        score: 42,
-        commentCount: 3,
-      },
-      {
-        communityId: reactjs!.id,
-        authorId: bob!.id,
-        title: "Server Components: when to use them, when not to",
-        slug: slugify("Server Components: when to use them, when not to"),
-        body: "Server Components are powerful but not always the answer. A practical guide to deciding between client and server rendering boundaries.",
-        score: 27,
-        commentCount: 2,
-      },
-      {
-        communityId: reactjs!.id,
-        authorId: carol!.id,
-        title: "Do you still reach for Redux?",
-        slug: slugify("Do you still reach for Redux?"),
-        body: "With context, zustand, and other lighter options, do you still use Redux for new projects? Curious about the current consensus.",
-        score: 15,
-        commentCount: 2,
-      },
-      {
-        communityId: typescript!.id,
-        authorId: bob!.id,
-        title: "Type-safe tRPC with Drizzle relations",
-        slug: slugify("Type-safe tRPC with Drizzle relations"),
-        body: "Combining tRPC v11 with Drizzle relational queries gives you end-to-end type safety with almost zero ceremony. Here's the setup.",
-        score: 33,
-        commentCount: 2,
-      },
-      {
-        communityId: typescript!.id,
-        authorId: carol!.id,
-        title: "Type gymnastics: inferring union types from a tuple",
-        slug: slugify("Type gymnastics: inferring union types from a tuple"),
-        body: "A deep dive into template literal types and tuple inference for building exhaustive discriminated unions.",
-        score: 19,
-        commentCount: 1,
-      },
-    ])
-    .returning();
+  for (let index = 0; index < insertedCommunities.length; index++) {
+    const community = insertedCommunities[index]!;
+    const ownerId = owners[index % owners.length]!;
 
-  const [c1, c3, c4, c5, c7] = await db
-    .insert(comments)
-    .values([
-      {
-        postId: p1!.id,
-        authorId: bob!.id,
-        body: "Actions have been a game changer for forms. UseOptimistic still trips me up occasionally though.",
-        parentCommentId: null,
-        depth: 0,
-        score: 8,
-      },
-      {
-        postId: p2!.id,
-        authorId: alice!.id,
-        body: "Rule of thumb: if it's interactive-heavy and dynamic, keep it a client component. If it's mostly static, server components shine.",
-        parentCommentId: null,
-        depth: 0,
-        score: 6,
-      },
-      {
-        postId: p3!.id,
-        authorId: alice!.id,
-        body: "Not for new projects. zustand covers 90% of what I used Redux for.",
-        parentCommentId: null,
-        depth: 0,
-        score: 4,
-      },
-      {
-        postId: p4!.id,
-        authorId: alice!.id,
-        body: "The with: syntax for relations is so much nicer than manual joins. Great writeup.",
-        parentCommentId: null,
-        depth: 0,
-        score: 7,
-      },
-      {
-        postId: p5!.id,
-        authorId: bob!.id,
-        body: "Template literal types unlocked so much in my codebase. This is a great example.",
-        parentCommentId: null,
-        depth: 0,
-        score: 6,
-      },
-    ])
-    .returning();
+    membershipValues.push({
+      communityId: community.id,
+      userId: ownerId,
+      role: "owner",
+    });
 
-  await db
-    .insert(comments)
-    .values([
-      {
-        postId: p1!.id,
-        authorId: carol!.id,
-        body: "Agreed. The compiler is exciting but I'd wait a few more minors before betting production on it.",
-        parentCommentId: c1!.id,
-        depth: 1,
-        score: 5,
-      },
-      {
-        postId: p1!.id,
-        authorId: alice!.id,
-        body: "Nice writeup, the stability notes were really helpful.",
-        parentCommentId: c1!.id,
-        depth: 2,
-        score: 2,
-      },
-      {
-        postId: p2!.id,
-        authorId: carol!.id,
-        body: "Also worth mentioning streaming and how it composes with server components.",
-        parentCommentId: c3!.id,
-        depth: 1,
-        score: 3,
-      },
-      {
-        postId: p3!.id,
-        authorId: bob!.id,
-        body: "We migrated a legacy app off Redux to React Query + zustand. Huge win.",
-        parentCommentId: c4!.id,
-        depth: 1,
-        score: 4,
-      },
-      {
-        postId: p4!.id,
-        authorId: carol!.id,
-        body: "Any tips on avoiding N+1 when you nest relations a few levels deep?",
-        parentCommentId: c5!.id,
-        depth: 1,
-        score: 3,
-      },
-    ])
-    .returning();
+    // Vary membership so member counts differ (drives trending order).
+    const otherUsers = owners.filter((id) => id !== ownerId);
+    const joinCount = index % 2 === 0 ? otherUsers.length : 1;
+    for (let i = 0; i < joinCount; i++) {
+      membershipValues.push({
+        communityId: community.id,
+        userId: otherUsers[i]!,
+        role: "member",
+      });
+    }
+  }
 
-  await db.insert(votes).values([
-    { userId: bob!.id, targetType: "post", targetId: p1!.id, value: 1 },
-    { userId: carol!.id, targetType: "post", targetId: p1!.id, value: 1 },
-    { userId: alice!.id, targetType: "post", targetId: p2!.id, value: 1 },
-    { userId: carol!.id, targetType: "post", targetId: p4!.id, value: 1 },
-    { userId: alice!.id, targetType: "post", targetId: p5!.id, value: -1 },
-    { userId: alice!.id, targetType: "comment", targetId: c1!.id, value: 1 },
-    { userId: carol!.id, targetType: "comment", targetId: c5!.id, value: 1 },
-    { userId: bob!.id, targetType: "comment", targetId: c7!.id, value: 1 },
-    { userId: alice!.id, targetType: "comment", targetId: c3!.id, value: 1 },
-    { userId: carol!.id, targetType: "comment", targetId: c4!.id, value: -1 },
-  ]);
+  await db.insert(communityMembers).values(membershipValues);
+
+  // Sync member counts on communities.
+  for (const community of insertedCommunities) {
+    const members = membershipValues.filter(
+      (m) => m.communityId === community.id,
+    );
+    await db
+      .update(communities)
+      .set({ memberCount: members.length })
+      .where(eq(communities.id, community.id));
+  }
 
   const usersCount = (await db.select().from(users)).length;
   const communitiesCount = (await db.select().from(communities)).length;
+  const membershipsCount = (await db.select().from(communityMembers)).length;
   const postsCount = (await db.select().from(posts)).length;
-  const commentsCount = (await db.select().from(comments)).length;
-  const votesCount = (await db.select().from(votes)).length;
 
   console.log(`Seeded:
   users: ${usersCount}
   communities: ${communitiesCount}
+  memberships: ${membershipsCount}
   posts: ${postsCount}
-  comments: ${commentsCount}
-  votes: ${votesCount}
 
 Seed login (any user): password = ${PASSWORD}`);
 }

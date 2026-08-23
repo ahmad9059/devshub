@@ -4,6 +4,7 @@ import { Code2Icon, HomeIcon, PlusIcon, TrendingUpIcon } from "lucide-react";
 
 import { auth } from "~/auth";
 import { CommunityList } from "~/components/community-list";
+import { RecentActivity } from "~/components/recent-activity";
 import { SearchBar } from "~/components/search-bar";
 import { ThemeToggle } from "~/components/theme-toggle";
 import { TrendingWidget } from "~/components/trending-widget";
@@ -137,6 +138,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
           )}
+
+          {user && <RecentActivity userId={user.id} />}
 
           <TrendingWidget />
 

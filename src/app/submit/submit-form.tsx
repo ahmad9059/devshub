@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Trash2Icon } from "lucide-react";
 
 import { ImageUploadButton } from "~/components/image-upload-button";
 import { api } from "~/trpc/react";
@@ -41,6 +42,11 @@ export function SubmitForm({
   const [body, setBody] = useState("");
   const [imageObjectKey, setImageObjectKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const previewUrl = api.storage.getSignedDownloadUrl.useQuery(
+    { key: imageObjectKey! },
+    { enabled: Boolean(imageObjectKey) },
+  );
 
   const memberships = listMine.data ?? [];
   const joined = memberships
@@ -178,6 +184,26 @@ export function SubmitForm({
                   label={imageObjectKey ? "Change image" : "Upload image"}
                   onUploaded={(key) => setImageObjectKey(key)}
                 />
+                {imageObjectKey && previewUrl.data && (
+                  <div className="flex flex-col gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={previewUrl.data}
+                      alt="Post image preview"
+                      className="max-h-64 w-full rounded-md border object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="w-fit"
+                      onClick={() => setImageObjectKey(null)}
+                    >
+                      <Trash2Icon aria-hidden="true" />
+                      Remove image
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {error && (
