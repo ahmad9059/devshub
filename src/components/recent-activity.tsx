@@ -53,12 +53,12 @@ export async function RecentActivity({ userId }: { userId: string }) {
           <Link
             key={post.id}
             href={`/post/${post.slug}`}
-            className="hover:bg-muted flex flex-col rounded-md px-2 py-1.5"
+            className="hover:bg-muted group/post flex flex-col rounded-md px-2 py-1.5 transition-[background-color,transform] duration-150 active:scale-[0.98]"
           >
-            <span className="line-clamp-1 text-sm font-medium">
+            <span className="group-hover/post:text-primary line-clamp-1 text-sm font-medium transition-colors duration-200">
               {post.title}
             </span>
-            <span className="text-muted-foreground text-xs">
+            <span className="text-muted-foreground group-hover/post:text-foreground text-xs transition-colors duration-200">
               d/{post.community.slug}
             </span>
           </Link>

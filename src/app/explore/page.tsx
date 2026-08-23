@@ -37,10 +37,12 @@ export default async function ExplorePage() {
                 <Link
                   key={community.id}
                   href={`/community/${community.slug}`}
-                  className="hover:bg-muted flex items-center justify-between rounded-md px-2 py-2 text-sm"
+                  className="hover:bg-muted group/community flex items-center justify-between rounded-md px-2 py-2 text-sm transition-[background-color,transform] duration-150 active:scale-[0.99]"
                 >
                   <div className="flex flex-col">
-                    <span className="font-medium">d/{community.slug}</span>
+                    <span className="group-hover/community:text-primary font-medium transition-colors duration-200">
+                      d/{community.slug}
+                    </span>
                     {community.description && (
                       <span className="text-muted-foreground line-clamp-1 text-xs">
                         {community.description}

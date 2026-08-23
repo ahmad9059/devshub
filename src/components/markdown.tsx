@@ -35,7 +35,7 @@ const components = {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-primary underline underline-offset-3 hover:opacity-80"
+      className="text-primary bg-[linear-gradient(currentColor,currentColor)] bg-[length:0%_1px] bg-left-bottom bg-no-repeat transition-[background-size] duration-300 ease-out hover:bg-[length:100%_1px]"
     >
       {children}
     </a>

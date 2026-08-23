@@ -44,7 +44,10 @@ export function PostCard({
   isLoggedIn?: boolean;
 }) {
   return (
-    <Card size="sm" className="relative">
+    <Card
+      size="sm"
+      className="relative"
+    >
       <Link
         href={`/post/${post.slug}`}
         aria-label={post.title}
@@ -63,18 +66,20 @@ export function PostCard({
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-(--card-spacing)">
           <CardHeader>
-            <CardTitle className="group-hover/card:text-primary text-base leading-snug transition-colors">
+            <CardTitle className="group-hover/card:text-primary w-fit text-base leading-snug transition-colors duration-200">
               {post.title}
             </CardTitle>
           </CardHeader>
           {imageSrc && (
             <CardContent className="pt-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imageSrc}
-                alt={post.title}
-                className="max-h-72 w-full rounded-md object-cover"
-              />
+              <div className="overflow-hidden rounded-md">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageSrc}
+                  alt={post.title}
+                  className="max-h-72 w-full object-cover transition-transform duration-300 ease-out group-hover/card:scale-[1.01]"
+                />
+              </div>
             </CardContent>
           )}
           <CardContent>
@@ -103,7 +108,7 @@ export function PostCard({
             </div>
           </CardContent>
           <CardContent className="text-muted-foreground flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1">
+            <span className="group-hover/card:text-foreground flex items-center gap-1 transition-colors duration-200">
               <MessageCircleIcon className="size-3.5" aria-hidden="true" />
               {post.commentCount} comments
             </span>

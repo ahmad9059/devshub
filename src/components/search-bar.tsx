@@ -21,9 +21,9 @@ export function SearchBar({ className }: { className?: string }) {
 
   return (
     <form onSubmit={handleSubmit} className={className} role="search">
-      <div className="relative">
+      <div className="group/search focus-within:ring-ring/50 relative rounded-lg transition-[box-shadow] duration-200 focus-within:ring-3">
         <SearchIcon
-          className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
+          className="text-muted-foreground group-focus-within/search:text-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 transition-colors duration-200"
           aria-hidden="true"
         />
         <Input

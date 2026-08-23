@@ -43,8 +43,14 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
     <div className="bg-background min-h-screen">
       <header className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-40 border-b backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <Code2Icon className="size-4" aria-hidden="true" />
+          <Link
+            href="/"
+            className="flex shrink-0 items-center gap-2 transition-opacity duration-200 hover:opacity-80"
+          >
+            <Code2Icon
+              className="size-4 transition-transform duration-300 hover:rotate-12"
+              aria-hidden="true"
+            />
             <span className="text-sm font-semibold">DevsHub</span>
           </Link>
           <Suspense fallback={null}>
@@ -88,9 +94,12 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="hover:bg-muted flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium"
+                className="hover:bg-muted group/nav-item flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-[background-color,transform] duration-200 hover:translate-x-0.5 active:scale-[0.98]"
               >
-                <item.icon className="size-4" aria-hidden="true" />
+                <item.icon
+                  className="size-4 transition-transform duration-200 group-hover/nav-item:scale-110"
+                  aria-hidden="true"
+                />
                 {item.label}
               </Link>
             ))}
@@ -103,7 +112,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
 
         <aside className="hidden w-60 shrink-0 flex-col gap-4 xl:flex">
           {user ? (
-            <div className="flex items-center gap-3 rounded-lg border p-3">
+            <div className="hover:bg-muted/40 flex items-center gap-3 rounded-lg border p-3 transition-[box-shadow,background-color] duration-200">
               <UserAvatar
                 name={user.name}
                 username={user.username}
@@ -116,7 +125,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
                 </span>
                 <Link
                   href="/settings"
-                  className="text-muted-foreground hover:text-foreground text-xs"
+                  className="text-muted-foreground hover:text-foreground w-fit text-xs transition-colors duration-200"
                 >
                   Settings
                 </Link>

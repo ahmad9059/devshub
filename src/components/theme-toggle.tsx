@@ -28,8 +28,14 @@ export function ThemeToggle() {
           />
         }
       >
-        <SunIcon className="hidden dark:block" aria-hidden="true" />
-        <MoonIcon className="dark:hidden" aria-hidden="true" />
+        <SunIcon
+          className="hidden transition-transform duration-300 ease-out group-hover/button:rotate-45 dark:block"
+          aria-hidden="true"
+        />
+        <MoonIcon
+          className="transition-transform duration-300 ease-out group-hover/button:rotate-45 dark:hidden"
+          aria-hidden="true"
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuGroup>

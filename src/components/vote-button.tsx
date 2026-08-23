@@ -90,16 +90,22 @@ export function VoteButton({
         aria-label="Upvote"
         disabled={cast.isPending}
         onClick={() => handleVote(1)}
-        className={cn(upActive && "text-primary hover:text-primary")}
+        className={cn(
+          "transition-[color,transform,background-color] duration-150 hover:scale-110 active:scale-90",
+          upActive && "text-primary hover:text-primary scale-110",
+        )}
       >
         <ArrowBigUpIcon
-          className={cn("size-4", upActive && "fill-current")}
+          className={cn(
+            "size-4 transition-transform duration-200",
+            upActive && "fill-current",
+          )}
           aria-hidden="true"
         />
       </Button>
       <span
         className={cn(
-          "text-muted-foreground min-w-6 text-center text-sm font-medium tabular-nums",
+          "text-muted-foreground min-w-6 text-center text-sm font-medium tabular-nums transition-colors duration-200",
           vertical && "text-xs",
           upActive && "text-primary",
           downActive && "text-destructive",
@@ -113,10 +119,16 @@ export function VoteButton({
         aria-label="Downvote"
         disabled={cast.isPending}
         onClick={() => handleVote(-1)}
-        className={cn(downActive && "text-destructive hover:text-destructive")}
+        className={cn(
+          "transition-[color,transform,background-color] duration-150 hover:scale-110 active:scale-90",
+          downActive && "text-destructive hover:text-destructive scale-110",
+        )}
       >
         <ArrowBigDownIcon
-          className={cn("size-4", downActive && "fill-current")}
+          className={cn(
+            "size-4 transition-transform duration-200",
+            downActive && "fill-current",
+          )}
           aria-hidden="true"
         />
       </Button>

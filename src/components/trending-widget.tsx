@@ -25,9 +25,11 @@ export async function TrendingWidget({ limit = 5 }: { limit?: number }) {
           <Link
             key={community.id}
             href={`/community/${community.slug}`}
-            className="hover:bg-muted flex items-center justify-between rounded-md px-2 py-1.5 text-sm"
+            className="hover:bg-muted group/community flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition-[background-color,transform] duration-150 active:scale-[0.98]"
           >
-            <span className="font-medium">d/{community.slug}</span>
+            <span className="group-hover/community:text-primary font-medium transition-colors duration-200">
+              d/{community.slug}
+            </span>
             <span className="text-muted-foreground text-xs">
               {community.memberCount} members
             </span>
