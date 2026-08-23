@@ -44,9 +44,14 @@ export function PostCard({
   isLoggedIn?: boolean;
 }) {
   return (
-    <Card size="sm">
+    <Card size="sm" className="relative">
+      <Link
+        href={`/post/${post.slug}`}
+        aria-label={post.title}
+        className="ring-ring absolute inset-0 z-10 rounded-xl outline-none focus-visible:ring-2"
+      />
       <div className="flex gap-3">
-        <div className="pl-(--card-spacing)">
+        <div className="relative z-20 pl-(--card-spacing)">
           <VoteButton
             targetType="post"
             targetId={post.id}
@@ -58,10 +63,8 @@ export function PostCard({
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-(--card-spacing)">
           <CardHeader>
-            <CardTitle className="text-base leading-snug">
-              <Link href={`/post/${post.slug}`} className="hover:text-primary">
-                {post.title}
-              </Link>
+            <CardTitle className="group-hover/card:text-primary text-base leading-snug transition-colors">
+              {post.title}
             </CardTitle>
           </CardHeader>
           {imageSrc && (
@@ -78,21 +81,21 @@ export function PostCard({
             <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
               <Link
                 href={`/community/${post.community.slug}`}
-                className="hover:text-foreground font-medium"
+                className="hover:text-foreground relative z-20 font-medium"
               >
                 d/{post.community.slug}
               </Link>
-              <span className="flex items-center gap-1">
-                <UserAvatar
-                  name={post.author.name}
-                  username={post.author.username}
-                  src={authorAvatarSrc}
-                  size="sm"
-                />
+              <span className="relative z-20 flex items-center gap-1">
                 <Link
                   href={`/user/${post.author.username ?? ""}`}
-                  className="hover:text-foreground"
+                  className="hover:text-foreground flex items-center gap-1"
                 >
+                  <UserAvatar
+                    name={post.author.name}
+                    username={post.author.username}
+                    src={authorAvatarSrc}
+                    size="sm"
+                  />
                   {post.author.username ?? post.author.name}
                 </Link>
               </span>
