@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { FeedSkeleton } from "~/components/feed-skeleton";
 import { PostCard } from "~/components/post-card";
 import { UserAvatar } from "~/components/user-avatar";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -52,7 +53,7 @@ export function SearchResults({
       </Tabs>
 
       {active.isLoading ? (
-        <p className="text-muted-foreground text-sm">Searching…</p>
+        <FeedSkeleton count={3} />
       ) : tab === "posts" ? (
         posts.data?.items.length ? (
           <div className="flex flex-col gap-3">

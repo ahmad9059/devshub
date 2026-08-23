@@ -10,6 +10,7 @@ import { ThemeToggle } from "~/components/theme-toggle";
 import { api } from "~/trpc/react";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -92,7 +93,12 @@ export default function CommunitySettingsPage() {
 
       <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10 sm:px-6">
         {getCommunity.isLoading ? (
-          <p className="text-muted-foreground text-sm">Loading…</p>
+          <div className="flex flex-col gap-3" aria-hidden="true">
+            <Skeleton className="h-6 w-40 rounded" />
+            <Skeleton className="h-4 w-64 rounded" />
+            <Skeleton className="h-9 w-full rounded-md" />
+            <Skeleton className="h-24 w-full rounded-md" />
+          </div>
         ) : !community ? (
           <Alert variant="destructive">
             <AlertDescription>

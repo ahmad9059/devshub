@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { FeedSkeleton } from "~/components/feed-skeleton";
 import { PostCard } from "~/components/post-card";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { api } from "~/trpc/react";
@@ -63,7 +64,7 @@ export function PostFeed({
       </Tabs>
 
       {feed.isLoading ? (
-        <p className="text-muted-foreground text-sm">Loading posts…</p>
+        <FeedSkeleton />
       ) : posts.length === 0 ? (
         <p className="text-muted-foreground py-8 text-center text-sm">
           No posts yet.
@@ -81,11 +82,7 @@ export function PostFeed({
       )}
 
       <div ref={loadMoreRef} className="h-1" />
-      {feed.isFetchingNextPage && (
-        <p className="text-muted-foreground text-center text-sm">
-          Loading more…
-        </p>
-      )}
+      {feed.isFetchingNextPage && <FeedSkeleton count={2} />}
     </div>
   );
 }

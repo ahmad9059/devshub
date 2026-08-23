@@ -46,7 +46,7 @@ export function PostCard({
   return (
     <Card size="sm">
       <div className="flex gap-3">
-        <div className="pt-(--card-spacing) pl-(--card-spacing)">
+        <div className="pl-(--card-spacing)">
           <VoteButton
             targetType="post"
             targetId={post.id}
@@ -56,7 +56,7 @@ export function PostCard({
             layout="vertical"
           />
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col gap-(--card-spacing)">
           <CardHeader>
             <CardTitle className="text-base leading-snug">
               <Link href={`/post/${post.slug}`} className="hover:text-primary">

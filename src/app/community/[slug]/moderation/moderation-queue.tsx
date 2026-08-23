@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 
 const REASON_LABELS: Record<string, string> = {
@@ -82,7 +83,17 @@ export function ModerationQueue({ communitySlug }: { communitySlug: string }) {
   return (
     <div className="flex flex-col gap-3">
       {reports.isLoading ? (
-        <p className="text-muted-foreground text-sm">Loading reports…</p>
+        <div className="flex flex-col gap-3" aria-hidden="true">
+          {Array.from({ length: 3 }, (_, i) => (
+            <Card key={i} size="sm">
+              <CardContent className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-1/3 rounded" />
+                <Skeleton className="h-3 w-1/2 rounded" />
+                <Skeleton className="h-8 w-full rounded-md" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       ) : list.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center">

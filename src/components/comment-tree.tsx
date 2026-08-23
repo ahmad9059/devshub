@@ -5,6 +5,7 @@ import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 
 import { CommentCard } from "~/components/comment-card";
 import { CommentInput } from "~/components/comment-input";
+import { CommentSkeleton } from "~/components/comment-skeleton";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { api } from "~/trpc/react";
 
@@ -121,7 +122,7 @@ export function CommentSection({
       {currentUserId && <CommentInput postId={postId} />}
 
       {comments.isLoading ? (
-        <p className="text-muted-foreground text-sm">Loading comments…</p>
+        <CommentSkeleton />
       ) : tree.length === 0 ? (
         <p className="text-muted-foreground py-4 text-center text-sm">
           No comments yet. Be the first to comment.

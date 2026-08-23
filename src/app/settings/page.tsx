@@ -19,6 +19,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
+import { Skeleton } from "~/components/ui/skeleton";
 import { Textarea } from "~/components/ui/textarea";
 
 export default function SettingsPage() {
@@ -88,7 +89,12 @@ export default function SettingsPage() {
   if (getMe.isLoading) {
     return (
       <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10 sm:px-6">
-        <div className="text-muted-foreground text-sm">Loading profile…</div>
+        <div className="flex flex-col gap-3" aria-hidden="true">
+          <Skeleton className="h-8 w-32 rounded" />
+          <Skeleton className="size-20 rounded-full" />
+          <Skeleton className="h-9 w-full rounded-md" />
+          <Skeleton className="h-24 w-full rounded-md" />
+        </div>
       </main>
     );
   }
