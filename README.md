@@ -42,6 +42,3 @@ Do not expose AWS credentials or the Neon connection string to client components
 The app uses shadcn/ui semantic tokens with dark mode enabled by default. Visit `/design-system` for the live foundations, components, and patterns reference. Design decisions are documented in `design-system/devshub/MASTER.md`.
 
 UI work must prioritize existing or registry-provided shadcn components. Build a custom component only when shadcn has no suitable option, and compose it from shadcn primitives whenever possible.
-
-
-@ahmad9059

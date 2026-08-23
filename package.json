@@ -10,6 +10,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx --env-file=.env src/server/db/seed.ts",
+    "db:seed-posts": "tsx --env-file=.env src/server/db/seed-posts.ts",
     "db:studio": "drizzle-kit studio",
     "dev": "next dev --turbopack",
     "format:check": "prettier --check . --cache",
