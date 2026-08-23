@@ -88,20 +88,20 @@ export default function SettingsPage() {
 
   if (getMe.isLoading) {
     return (
-      <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10 sm:px-6">
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 py-6">
         <div className="flex flex-col gap-3" aria-hidden="true">
           <Skeleton className="h-8 w-32 rounded" />
           <Skeleton className="size-20 rounded-full" />
           <Skeleton className="h-9 w-full rounded-md" />
           <Skeleton className="h-24 w-full rounded-md" />
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!me) {
     return (
-      <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10 sm:px-6">
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 py-6">
         <Alert variant="destructive">
           <CircleAlertIcon aria-hidden="true" />
           <AlertTitle>Could not load profile</AlertTitle>
@@ -112,12 +112,12 @@ export default function SettingsPage() {
             </Link>
           </AlertDescription>
         </Alert>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10 sm:px-6">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 py-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="text-muted-foreground text-sm">
@@ -251,6 +251,6 @@ export default function SettingsPage() {
         />
         <span>{me.username ? `@${me.username}` : (me.name ?? me.email)}</span>
       </div>
-    </main>
+    </div>
   );
 }

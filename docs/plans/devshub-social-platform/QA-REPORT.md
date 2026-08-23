@@ -318,3 +318,14 @@ Phase 1 owned P0 issues 1, 2, 4, 5 and P1 issue 10 (bot protection) — resolved
 4. Consider enabling `next/image` remote patterns for S3 presigned images and adding real user-facing image uploads end-to-end test.
 5. Add a community-delete action for owners (currently available: promote/demote/removeMember).
 6. Add Sentry/monitoring post-launch if error volume warrants.
+
+## Post-Phase Polish Pass (UX refinements)
+
+- **Headerless pages fixed**: profile (`/user/[username]`), settings, and community settings previously rendered with no site header/nav — now wrapped in `AppShell` (header + sidebar), consistent with home/community/post/search pages.
+- **Mobile horizontal overflow eliminated** (verified 0px at 375px across all 13 routes): post detail action row (Edit/Delete/Report), comment card action row (Reply/Edit/Delete/Report at deep thread indents), and community header actions (Join/New post/Moderation/Settings) all now wrap via `flex-wrap`.
+- **Select dropdown positioning**: `SelectContent` no longer overlaps its trigger — default `alignItemWithTrigger={false}` so the popup opens 4px below the trigger (affects community picker on /submit, report dialog, design-system demo).
+- **Community "New post" CTA**: members see a New post button on the community page linking to `/submit?community={slug}`; the submit form preselects that community via `?community=` param.
+- **Search UX**: empty search query now redirects home instead of 404.
+- **Icon consistency**: profile page used a raw `▲` character for post scores — replaced with the `ArrowBigUpIcon` used by vote buttons; Comments tab now has an icon like Posts.
+- **Feed card spacing**: internal card gaps restored to the 12px `--card-spacing` token (were 0–1px), vote buttons aligned with the title line.
+- **Loading states**: all plain "Loading…" texts replaced with skeleton components (`FeedSkeleton` for feeds/search, `CommentSkeleton` for comments, inline skeletons for forms/settings/moderation).

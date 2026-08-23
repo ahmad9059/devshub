@@ -27,7 +27,11 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 
-export function SubmitForm() {
+export function SubmitForm({
+  initialCommunitySlug,
+}: {
+  initialCommunitySlug?: string;
+}) {
   const router = useRouter();
   const listMine = api.community.listMine.useQuery();
   const createPost = api.post.create.useMutation();
@@ -42,6 +46,20 @@ export function SubmitForm() {
   const joined = memberships
     .map((m) => m.community)
     .sort((a, b) => a.slug.localeCompare(b.slug));
+
+  const appliedPreselect = useState(false);
+  if (
+    !appliedPreselect[0] &&
+    communityId === "" &&
+    initialCommunitySlug &&
+    joined.length > 0
+  ) {
+    const match = joined.find((c) => c.slug === initialCommunitySlug);
+    if (match) {
+      setCommunityId(match.id);
+    }
+    appliedPreselect[1](true);
+  }
 
   const canSubmit =
     communityId &&

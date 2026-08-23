@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TRPCError } from "@trpc/server";
-import { CalendarIcon, SettingsIcon, ShieldIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, SettingsIcon, ShieldIcon } from "lucide-react";
 
 import { JoinButton, JoinButtonSignedOut } from "~/components/join-button";
 import { AppShell } from "~/components/layout/app-shell";
@@ -94,7 +94,7 @@ export default async function CommunityPage({
     <AppShell>
       <div className="flex flex-col gap-6">
         <section className="flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="bg-muted flex size-12 items-center justify-center rounded-full text-xl font-semibold">
                 {community.name[0]?.toUpperCase() ?? "C"}
@@ -116,6 +116,17 @@ export default async function CommunityPage({
                   isMember={isMember}
                   isOwner={isOwner}
                 />
+                {isMember && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    nativeButton={false}
+                    render={<Link href={`/submit?community=${slug}`} />}
+                  >
+                    <PlusIcon aria-hidden="true" />
+                    New post
+                  </Button>
+                )}
                 {(isOwner || isModerator) && (
                   <>
                     <Button

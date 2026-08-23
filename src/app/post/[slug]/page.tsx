@@ -136,7 +136,7 @@ export default async function PostPage({
             )}
             {post.body && <Markdown content={post.body} />}
             <Separator />
-            <div className="text-muted-foreground flex items-center justify-between text-sm">
+            <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-sm">
               <div className="flex items-center gap-4">
                 <VoteButton
                   targetType="post"

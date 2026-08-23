@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { auth } from "~/auth";
 import { AppShell } from "~/components/layout/app-shell";
@@ -26,8 +26,10 @@ export default async function SearchPage({
 }) {
   const { q } = await searchParams;
   if (!q || !q.trim()) {
-    notFound();
+    redirect("/");
   }
+
+  const query = q.trim();
 
   const session = await auth();
   const isLoggedIn = Boolean(session?.user);
@@ -36,9 +38,9 @@ export default async function SearchPage({
     <AppShell>
       <div className="flex flex-col gap-4">
         <h1 className="text-xl font-semibold tracking-tight">
-          Results for &ldquo;{q}&rdquo;
+          Results for &ldquo;{query}&rdquo;
         </h1>
-        <SearchResults query={q.trim()} isLoggedIn={isLoggedIn} />
+        <SearchResults query={query} isLoggedIn={isLoggedIn} />
       </div>
     </AppShell>
   );

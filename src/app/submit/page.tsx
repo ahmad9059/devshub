@@ -1,10 +1,16 @@
 import { AppShell } from "~/components/layout/app-shell";
 import { SubmitForm } from "./submit-form";
 
-export default function SubmitPage() {
+export default async function SubmitPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ community?: string }>;
+}) {
+  const { community } = await searchParams;
+
   return (
     <AppShell>
-      <SubmitForm />
+      <SubmitForm initialCommunitySlug={community} />
     </AppShell>
   );
 }
